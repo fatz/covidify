@@ -11,6 +11,7 @@
 package covidify
 
 type VisitRisk struct {
+
 	Risk string `json:"risk,omitempty" cql:"risk"`
 
 	Description string `json:"description,omitempty" cql:"description"`

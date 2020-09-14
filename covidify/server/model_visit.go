@@ -15,6 +15,7 @@ import (
 )
 
 type Visit struct {
+
 	Id string `json:"id,omitempty" cql:"id"`
 
 	TableNumber string `json:"table_number" cql:"table_number"`
@@ -24,7 +25,7 @@ type Visit struct {
 
 	CheckOut time.Time `json:"check-out,omitempty" cql:"checkout"`
 
-	Visitors []Visitor `json:"visitors" cql:"visitors"`
+	Visitors []Visitor `json:"visitors,omitempty" cql:"visitors"`
 
 	Risk VisitRisk `json:"risk,omitempty" cql:"risk"`
 }

@@ -90,89 +90,101 @@ components:
     Visit:
       example:
         check-in: 2016-08-29T09:12:33.001Z
+        visitors:
+        - country: DEU
+          phone: +49-30-123456789
+          city: Berlin
+          street: Platz der Republik 1
+          name: John Doe
+          email: john.doe@googlemail.com
+          zip_code: "11011"
+        - country: DEU
+          phone: +49-30-123456789
+          city: Berlin
+          street: Platz der Republik 1
+          name: John Doe
+          email: john.doe@googlemail.com
+          zip_code: "11011"
         table_number: outside-1
         check-out: 2016-08-29T09:12:33.001Z
-        risk:
-          description: description
-          risk: low
+        risk: ""
         id: d290f1ee-6c54-4b01-90e6-d701748f0851
-        visitor:
-        - zip: "11011"
-          country: DEU
-          phone: +49-30-123456789
-          city: Berlin
-          street: Platz der Republik 1
-          name: John Doe
-          email: john.doe@googlemail.com
-        - zip: "11011"
-          country: DEU
-          phone: +49-30-123456789
-          city: Berlin
-          street: Platz der Republik 1
-          name: John Doe
-          email: john.doe@googlemail.com
       properties:
         id:
           example: d290f1ee-6c54-4b01-90e6-d701748f0851
           format: uuid
           type: string
+          x-go-custom-tag: cql:"id"
         table_number:
           example: outside-1
           type: string
+          x-go-custom-tag: cql:"table_number"
         check-in:
           description: If not specified it will default to now()
           example: 2016-08-29T09:12:33.001Z
           format: date-time
           type: string
+          x-go-custom-tag: cql:"checkin"
         check-out:
           example: 2016-08-29T09:12:33.001Z
           format: date-time
           type: string
-        visitor:
+          x-go-custom-tag: cql:"checkout"
+        visitors:
           items:
             $ref: '#/components/schemas/Visitor'
           type: array
+          x-go-custom-tag: cql:"visitors"
         risk:
-          $ref: '#/components/schemas/VisitRisk'
+          allOf:
+          - $ref: '#/components/schemas/VisitRisk'
+          x-go-custom-tag: cql:"risk"
       required:
       - table_number
       - visitor
       type: object
     Visitor:
       example:
-        zip: "11011"
         country: DEU
         phone: +49-30-123456789
         city: Berlin
         street: Platz der Republik 1
         name: John Doe
         email: john.doe@googlemail.com
+        zip_code: "11011"
       properties:
         name:
           example: John Doe
           type: string
+          x-go-custom-tag: cql:"name"
         email:
           example: john.doe@googlemail.com
           format: email
           type: string
+          x-go-custom-tag: cql:"email"
         phone:
           example: +49-30-123456789
           type: string
+          x-go-custom-tag: cql:"phone"
         country:
           description: ISO 3166 3-Digit country code
           example: DEU
           maxLength: 3
           minLength: 3
           type: string
+          x-go-custom-tag: cql:"country"
         city:
           example: Berlin
           type: string
-        zip:
+          x-go-custom-tag: cql:"city"
+        zip_code:
           example: "11011"
           type: string
+          x-go-custom-tag: cql:"zip_code"
         street:
           example: Platz der Republik 1
           type: string
+          x-go-custom-tag: cql:"street"
       required:
       - city
       - name
@@ -190,94 +202,92 @@ components:
           - moderate
           - high
           type: string
+          x-go-custom-tag: cql:"risk"
         description:
           type: string
+          x-go-custom-tag: cql:"description"
       type: object
     ReportVisitor:
       example:
         finalized: false
+        visitors:
+        - country: DEU
+          phone: +49-30-123456789
+          city: Berlin
+          street: Platz der Republik 1
+          name: John Doe
+          email: john.doe@googlemail.com
+          zip_code: "11011"
+        - country: DEU
+          phone: +49-30-123456789
+          city: Berlin
+          street: Platz der Republik 1
+          name: John Doe
+          email: john.doe@googlemail.com
+          zip_code: "11011"
         visits:
         - check-in: 2016-08-29T09:12:33.001Z
+          visitors:
+          - country: DEU
+            phone: +49-30-123456789
+            city: Berlin
+            street: Platz der Republik 1
+            name: John Doe
+            email: john.doe@googlemail.com
+            zip_code: "11011"
+          - country: DEU
+            phone: +49-30-123456789
+            city: Berlin
+            street: Platz der Republik 1
+            name: John Doe
+            email: john.doe@googlemail.com
+            zip_code: "11011"
           table_number: outside-1
           check-out: 2016-08-29T09:12:33.001Z
-          risk:
-            description: description
-            risk: low
+          risk: ""
           id: d290f1ee-6c54-4b01-90e6-d701748f0851
-          visitor:
-          - zip: "11011"
-            country: DEU
-            phone: +49-30-123456789
-            city: Berlin
-            street: Platz der Republik 1
-            name: John Doe
-            email: john.doe@googlemail.com
-          - zip: "11011"
-            country: DEU
-            phone: +49-30-123456789
-            city: Berlin
-            street: Platz der Republik 1
-            name: John Doe
-            email: john.doe@googlemail.com
         - check-in: 2016-08-29T09:12:33.001Z
+          visitors:
+          - country: DEU
+            phone: +49-30-123456789
+            city: Berlin
+            street: Platz der Republik 1
+            name: John Doe
+            email: john.doe@googlemail.com
+            zip_code: "11011"
+          - country: DEU
+            phone: +49-30-123456789
+            city: Berlin
+            street: Platz der Republik 1
+            name: John Doe
+            email: john.doe@googlemail.com
+            zip_code: "11011"
           table_number: outside-1
           check-out: 2016-08-29T09:12:33.001Z
-          risk:
-            description: description
-            risk: low
+          risk: ""
           id: d290f1ee-6c54-4b01-90e6-d701748f0851
-          visitor:
-          - zip: "11011"
-            country: DEU
-            phone: +49-30-123456789
-            city: Berlin
-            street: Platz der Republik 1
-            name: John Doe
-            email: john.doe@googlemail.com
-          - zip: "11011"
-            country: DEU
-            phone: +49-30-123456789
-            city: Berlin
-            street: Platz der Republik 1
-            name: John Doe
-            email: john.doe@googlemail.com
         id: d290f1ee-6c54-4b01-90e6-d701748f0851
-        visitor:
-        - zip: "11011"
-          country: DEU
-          phone: +49-30-123456789
-          city: Berlin
-          street: Platz der Republik 1
-          name: John Doe
-          email: john.doe@googlemail.com
-        - zip: "11011"
-          country: DEU
-          phone: +49-30-123456789
-          city: Berlin
-          street: Platz der Republik 1
-          name: John Doe
-          email: john.doe@googlemail.com
         contacts:
-        - zip: "11011"
-          country: DEU
+        - country: DEU
           phone: +49-30-123456789
           city: Berlin
           street: Platz der Republik 1
           name: John Doe
           email: john.doe@googlemail.com
-        - zip: "11011"
-          country: DEU
+          zip_code: "11011"
+        - country: DEU
           phone: +49-30-123456789
           city: Berlin
           street: Platz der Republik 1
           name: John Doe
           email: john.doe@googlemail.com
+          zip_code: "11011"
       properties:
         id:
           example: d290f1ee-6c54-4b01-90e6-d701748f0851
           format: uuid
           type: string
-        visitor:
+        visitors:
           items:
             $ref: '#/components/schemas/Visitor'
           type: array

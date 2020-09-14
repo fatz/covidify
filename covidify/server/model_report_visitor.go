@@ -11,6 +11,7 @@
 package covidify
 
 type ReportVisitor struct {
+
 	Id string `json:"id,omitempty"`
 
 	Visitors []Visitor `json:"visitors,omitempty"`

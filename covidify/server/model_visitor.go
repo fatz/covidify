@@ -11,6 +11,7 @@
 package covidify
 
 type Visitor struct {
+
 	Name string `json:"name" cql:"name"`
 
 	Email string `json:"email,omitempty" cql:"email"`

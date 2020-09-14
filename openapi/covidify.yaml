@@ -97,24 +97,31 @@ components:
           type: string
           format: uuid
           example: d290f1ee-6c54-4b01-90e6-d701748f0851
+          x-go-custom-tag: cql:"id"
         table_number:
           type: string
           example: 'outside-1'
+          x-go-custom-tag: cql:"table_number"
         check-in:
           type: string
           format: date-time
           example: '2016-08-29T09:12:33.001Z'
           description: "If not specified it will default to now()"
+          x-go-custom-tag: cql:"checkin"
         check-out:
           type: string
           format: date-time
           example: '2016-08-29T09:12:33.001Z'
+          x-go-custom-tag: cql:"checkout"
         visitors:
           type: array
+          x-go-custom-tag: cql:"visitors"
           items:
             $ref: '#/components/schemas/Visitor'
         risk:
-          $ref: '#/components/schemas/VisitRisk'
+          x-go-custom-tag: cql:"risk"
+          allOf:
+            - $ref: '#/components/schemas/VisitRisk'
     Visitor:
       type: object
       required:
@@ -126,36 +133,45 @@ components:
         name:
           type: string
           example: John Doe
+          x-go-custom-tag: cql:"name"
         email:
           type: string
           format: email
           example: 'john.doe@googlemail.com'
+          x-go-custom-tag: cql:"email"
         phone:
           type: string
           example: +49-30-123456789
+          x-go-custom-tag: cql:"phone"
         country:
           type: string
           example: DEU
           minLength: 3
           maxLength: 3
           description: ISO 3166 3-Digit country code
+          x-go-custom-tag: cql:"country"
         city:
           type: string
           example: Berlin
+          x-go-custom-tag: cql:"city"
         zip_code:
           type: string
           example: 11011
+          x-go-custom-tag: cql:"zip_code"
         street:
           type: string
           example: Platz der Republik 1
+          x-go-custom-tag: cql:"street"
     VisitRisk:
       type: object
       properties:
         risk:
           type: string
           enum: ["low", "moderate", "high"]
+          x-go-custom-tag: cql:"risk"
         description:
           type: string
+          x-go-custom-tag: cql:"description"
     ReportVisitor:
       type: object
       properties:
