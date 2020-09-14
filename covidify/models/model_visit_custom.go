@@ -1,4 +1,4 @@
-package covidify
+package models
 
 import (
 	"fmt"

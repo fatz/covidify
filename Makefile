@@ -5,7 +5,8 @@ docker run -u $(shell id -u):$(shell id -g) \
 	-v $(CURDIR):/local -w /local \
 	openapitools/openapi-generator-cli:v4.3.1 \
 	generate -i openapi/covidify.yaml -g go-gin-server -o covidify \
-	--additional-properties=packageName=covidify,withGoCodegenComment=true,apiPath=server \
+	--global-property models \
+	--additional-properties=packageName=models,withGoCodegenComment=true,apiPath=models \
 	$(1)
 endef
 

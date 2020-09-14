@@ -5,14 +5,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	covidify "github.com/fatz/covidify/covidify/server"
+	"github.com/fatz/covidify/covidify/models"
 )
 
-func testCreateVisit() covidify.Visit {
+func testCreateVisit() models.Visit {
 
-	v := covidify.NewVisit()
+	v := models.NewVisit()
 	v.TableNumber = "o-123"
-	vs := covidify.Visitor{}
+	vs := models.Visitor{}
 	vs.City = "Hamburg"
 	vs.Country = "DEU"
 	vs.Name = "Max Mustermann"

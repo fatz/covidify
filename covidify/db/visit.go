@@ -1,12 +1,12 @@
 package db
 
 import (
-	covidify "github.com/fatz/covidify/covidify/server"
+	models "github.com/fatz/covidify/covidify/models"
 	"github.com/relops/cqlr"
 )
 
 // CreateVisit Insters Visit into DB
-func (d *DB) CreateVisit(v covidify.Visit) (*covidify.Visit, error) {
+func (d *DB) CreateVisit(v models.Visit) (*models.Visit, error) {
 	if err := v.Valid(); err != nil {
 		return nil, err
 	}
@@ -26,8 +26,8 @@ func (d *DB) CreateVisit(v covidify.Visit) (*covidify.Visit, error) {
 	return &v, nil
 }
 
-func (d *DB) GetVisit(id string) (*covidify.Visit, error) {
-	var v covidify.Visit
+func (d *DB) GetVisit(id string) (*models.Visit, error) {
+	var v models.Visit
 	sess, err := d.Session()
 	if err != nil {
 		return nil, err
