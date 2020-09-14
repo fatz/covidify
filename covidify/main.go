@@ -13,20 +13,13 @@ package main
 import (
 	"log"
 
-	// WARNING!
-	// Change this to a fully-qualified import path
-	// once you place this file into your project.
-	// For example,
-	//
-	//    sw "github.com/myname/myrepo/server"
-	//
-	sw "./server"
+	sw "github.com/fatz/covidify/covidify/server"
 )
 
 func main() {
 	log.Printf("Server started")
 
-	router := sw.NewRouter()
+	s, _ := sw.NewServer()
 
-	log.Fatal(router.Run(":8080"))
+	s.Run()
 }

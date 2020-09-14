@@ -12,16 +12,46 @@ package covidify
 
 import (
 	"net/http"
+	"time"
+
+	"github.com/fatz/covidify/covidify/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // AddVisit - adds an Visit entry
-func AddVisit(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+func (s *Server) AddVisit(c *gin.Context) {
+	var visit models.Visit
+	if err := c.ShouldBindJSON(&visit); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	u, err := uuid.NewRandom()
+	if err == nil {
+		visit.Id = u.String()
+	}
+
+	if visit.CheckIn.Unix() <= 0 {
+		visit.CheckIn = time.Now()
+	}
+
+	if err := visit.Valid(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	v, err := s.db.CreateVisit(visit)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, v)
 }
 
 // CheckVisit - Visit status check
-func CheckVisit(c *gin.Context) {
+func (s *Server) CheckVisit(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }

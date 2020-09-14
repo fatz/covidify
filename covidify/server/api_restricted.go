@@ -17,6 +17,6 @@ import (
 )
 
 // AddReportVisitor - Report an infected visitor
-func AddReportVisitor(c *gin.Context) {
+func (s *Server) AddReportVisitor(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{})
 }

@@ -11,19 +11,17 @@
 package covidify
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
 // Route is the information for every URI.
 type Route struct {
 	// Name is the name of this Route.
-	Name        string
+	Name string
 	// Method is the string for the HTTP method. ex) GET, POST etc..
-	Method      string
+	Method string
 	// Pattern is the pattern of the URI.
-	Pattern     string
+	Pattern string
 	// HandlerFunc is the handler function of this route.
 	HandlerFunc gin.HandlerFunc
 }
@@ -32,55 +30,13 @@ type Route struct {
 type Routes []Route
 
 // NewRouter returns a new router.
-func NewRouter() *gin.Engine {
+func (s *Server) NewRouter() *gin.Engine {
 	router := gin.Default()
-	for _, route := range routes {
-		switch route.Method {
-		case http.MethodGet:
-			router.GET(route.Pattern, route.HandlerFunc)
-		case http.MethodPost:
-			router.POST(route.Pattern, route.HandlerFunc)
-		case http.MethodPut:
-			router.PUT(route.Pattern, route.HandlerFunc)
-		case http.MethodDelete:
-			router.DELETE(route.Pattern, route.HandlerFunc)
-		}
-	}
+
+	router.GET("/health", s.Health)
+	router.POST("/visit", s.AddVisit)
+	router.GET("/visit/:visitID", s.CheckVisit)
+	router.POST("/report/visitor", s.AddReportVisitor)
 
 	return router
-}
-
-// Index is the index handler.
-func Index(c *gin.Context) {
-	c.String(http.StatusOK, "Hello World!")
-}
-
-var routes = Routes{
-	{
-		"Index",
-		http.MethodGet,
-		"/",
-		Index,
-	},
-
-	{
-		"AddVisit",
-		http.MethodPost,
-		"/visit",
-		AddVisit,
-	},
-
-	{
-		"CheckVisit",
-		http.MethodGet,
-		"/visit/:visitID",
-		CheckVisit,
-	},
-
-	{
-		"AddReportVisitor",
-		http.MethodPost,
-		"/report/visitor",
-		AddReportVisitor,
-	},
 }

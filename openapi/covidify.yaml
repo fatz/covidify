@@ -156,7 +156,7 @@ components:
           x-go-custom-tag: cql:"city"
         zip_code:
           type: string
-          example: 11011
+          example: "11011"
           x-go-custom-tag: cql:"zip_code"
         street:
           type: string
