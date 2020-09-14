@@ -1,0 +1,180 @@
+openapi: 3.0.0
+servers:
+  - description: Main testing server
+    url: https://covidify.testing.mesosphe.re/
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/fatz/covidify/1.0.0
+info:
+  description: Simple API collecting guest data.
+  version: "1.0.0"
+  title: Covidify
+  contact:
+    email: you@your-company.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: internal
+    description: Secured admin or system calls
+  - name: public
+    description: Public accessable
+  - name: restricted
+    description: secured calls by known systems ( health departments )
+
+paths:
+  /report/visitor:
+    post:
+      tags:
+        - restricted
+      summary: Report an infected visitor
+      operationId: addReportVisitor
+      responses:
+        '201':
+          description: Report stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportVisitor'
+        '400':
+          description: 'invalid input, object invalid'
+        '404':
+          description: Visitor unknown
+
+  /visit:
+    post:
+      tags:
+        - public
+      summary: adds an Visit entry
+      operationId: addVisit
+      description: Adds an visitor to the Database
+      responses:
+        '201':
+          description: item created
+        '400':
+          description: 'invalid input, object invalid'
+        '409':
+          description: an existing item already exists
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Visit'
+        description: Inventory item to add
+  /visit/{visitID}:
+    parameters:
+      - name: visitID
+        in: path
+        description: ID of Visit to return
+        example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        required: true
+        schema:
+            type: string
+            format: uuid
+    get:
+      tags:
+        - public
+      summary: Visit status check
+      operationId: checkVisit
+      description: Returns the infection risk for a Visit
+      responses:
+        '200':
+          description: 'Visit infection risk result'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VisitRisk'
+        '404':
+          description: 'Visit not found'
+components:
+  schemas:
+    Visit:
+      type: object
+      required:
+        - visitor
+        - table_number
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        table_number:
+          type: string
+          example: 'outside-1'
+        check-in:
+          type: string
+          format: date-time
+          example: '2016-08-29T09:12:33.001Z'
+          description: "If not specified it will default to now()"
+        check-out:
+          type: string
+          format: date-time
+          example: '2016-08-29T09:12:33.001Z'
+        visitors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Visitor'
+        risk:
+          $ref: '#/components/schemas/VisitRisk'
+    Visitor:
+      type: object
+      required:
+        - name
+        - phone
+        - city
+        - street
+      properties:
+        name:
+          type: string
+          example: John Doe
+        email:
+          type: string
+          format: email
+          example: 'john.doe@googlemail.com'
+        phone:
+          type: string
+          example: +49-30-123456789
+        country:
+          type: string
+          example: DEU
+          minLength: 3
+          maxLength: 3
+          description: ISO 3166 3-Digit country code
+        city:
+          type: string
+          example: Berlin
+        zip_code:
+          type: string
+          example: 11011
+        street:
+          type: string
+          example: Platz der Republik 1
+    VisitRisk:
+      type: object
+      properties:
+        risk:
+          type: string
+          enum: ["low", "moderate", "high"]
+        description:
+          type: string
+    ReportVisitor:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        visitors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Visitor'
+        visits:
+          type: array
+          items:
+            $ref: '#/components/schemas/Visit'
+        finalized:
+          type: boolean
+          default: false
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Visitor'

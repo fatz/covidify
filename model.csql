@@ -1,0 +1,26 @@
+CREATE KEYSPACE covidify WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'} AND durable_writes = true;
+
+CREATE TYPE covidify.visitor (
+  name text,
+  email text,
+  phone text,
+  country text,
+  city text,
+  zip_code text,
+  street text
+);
+
+CREATE TYPE covidify.risk (
+  risk text,
+  description text
+);
+
+CREATE TABLE covidify.visit (
+  id uuid,
+  table_number text,
+  checkin timestamp,
+  checkout timestamp,
+  visitor list<frozen<visitor>>,
+  risk frozen<risk>,
+  PRIMARY KEY (id)
+);

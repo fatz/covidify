@@ -1,0 +1,295 @@
+openapi: 3.0.0
+info:
+  contact:
+    email: you@your-company.com
+  description: Simple API collecting guest data.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Covidify
+  version: 1.0.0
+servers:
+- description: Main testing server
+  url: https://covidify.testing.mesosphe.re/
+- description: SwaggerHub API Auto Mocking
+  url: https://virtserver.swaggerhub.com/fatz/covidify/1.0.0
+tags:
+- description: Secured admin or system calls
+  name: internal
+- description: Public accessable
+  name: public
+- description: secured calls by known systems ( health departments )
+  name: restricted
+paths:
+  /report/visitor:
+    post:
+      operationId: addReportVisitor
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportVisitor'
+          description: Report stored
+        "400":
+          description: invalid input, object invalid
+        "404":
+          description: Visitor unknown
+      summary: Report an infected visitor
+      tags:
+      - restricted
+  /visit:
+    post:
+      description: Adds an visitor to the Database
+      operationId: addVisit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Visit'
+        description: Inventory item to add
+      responses:
+        "201":
+          description: item created
+        "400":
+          description: invalid input, object invalid
+        "409":
+          description: an existing item already exists
+      summary: adds an Visit entry
+      tags:
+      - public
+  /visit/{visitID}:
+    get:
+      description: Returns the infection risk for a Visit
+      operationId: checkVisit
+      parameters:
+      - description: ID of Visit to return
+        example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        explode: false
+        in: path
+        name: visitID
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VisitRisk'
+          description: Visit infection risk result
+        "404":
+          description: Visit not found
+      summary: Visit status check
+      tags:
+      - public
+components:
+  schemas:
+    Visit:
+      example:
+        check-in: 2016-08-29T09:12:33.001Z
+        table_number: outside-1
+        check-out: 2016-08-29T09:12:33.001Z
+        risk:
+          description: description
+          risk: low
+        id: d290f1ee-6c54-4b01-90e6-d701748f0851
+        visitor:
+        - zip: "11011"
+          country: DEU
+          phone: +49-30-123456789
+          city: Berlin
+          street: Platz der Republik 1
+          name: John Doe
+          email: john.doe@googlemail.com
+        - zip: "11011"
+          country: DEU
+          phone: +49-30-123456789
+          city: Berlin
+          street: Platz der Republik 1
+          name: John Doe
+          email: john.doe@googlemail.com
+      properties:
+        id:
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+          format: uuid
+          type: string
+        table_number:
+          example: outside-1
+          type: string
+        check-in:
+          description: If not specified it will default to now()
+          example: 2016-08-29T09:12:33.001Z
+          format: date-time
+          type: string
+        check-out:
+          example: 2016-08-29T09:12:33.001Z
+          format: date-time
+          type: string
+        visitor:
+          items:
+            $ref: '#/components/schemas/Visitor'
+          type: array
+        risk:
+          $ref: '#/components/schemas/VisitRisk'
+      required:
+      - table_number
+      - visitor
+      type: object
+    Visitor:
+      example:
+        zip: "11011"
+        country: DEU
+        phone: +49-30-123456789
+        city: Berlin
+        street: Platz der Republik 1
+        name: John Doe
+        email: john.doe@googlemail.com
+      properties:
+        name:
+          example: John Doe
+          type: string
+        email:
+          example: john.doe@googlemail.com
+          format: email
+          type: string
+        phone:
+          example: +49-30-123456789
+          type: string
+        country:
+          description: ISO 3166 3-Digit country code
+          example: DEU
+          maxLength: 3
+          minLength: 3
+          type: string
+        city:
+          example: Berlin
+          type: string
+        zip:
+          example: "11011"
+          type: string
+        street:
+          example: Platz der Republik 1
+          type: string
+      required:
+      - city
+      - name
+      - phone
+      - street
+      type: object
+    VisitRisk:
+      example:
+        description: description
+        risk: low
+      properties:
+        risk:
+          enum:
+          - low
+          - moderate
+          - high
+          type: string
+        description:
+          type: string
+      type: object
+    ReportVisitor:
+      example:
+        finalized: false
+        visits:
+        - check-in: 2016-08-29T09:12:33.001Z
+          table_number: outside-1
+          check-out: 2016-08-29T09:12:33.001Z
+          risk:
+            description: description
+            risk: low
+          id: d290f1ee-6c54-4b01-90e6-d701748f0851
+          visitor:
+          - zip: "11011"
+            country: DEU
+            phone: +49-30-123456789
+            city: Berlin
+            street: Platz der Republik 1
+            name: John Doe
+            email: john.doe@googlemail.com
+          - zip: "11011"
+            country: DEU
+            phone: +49-30-123456789
+            city: Berlin
+            street: Platz der Republik 1
+            name: John Doe
+            email: john.doe@googlemail.com
+        - check-in: 2016-08-29T09:12:33.001Z
+          table_number: outside-1
+          check-out: 2016-08-29T09:12:33.001Z
+          risk:
+            description: description
+            risk: low
+          id: d290f1ee-6c54-4b01-90e6-d701748f0851
+          visitor:
+          - zip: "11011"
+            country: DEU
+            phone: +49-30-123456789
+            city: Berlin
+            street: Platz der Republik 1
+            name: John Doe
+            email: john.doe@googlemail.com
+          - zip: "11011"
+            country: DEU
+            phone: +49-30-123456789
+            city: Berlin
+            street: Platz der Republik 1
+            name: John Doe
+            email: john.doe@googlemail.com
+        id: d290f1ee-6c54-4b01-90e6-d701748f0851
+        visitor:
+        - zip: "11011"
+          country: DEU
+          phone: +49-30-123456789
+          city: Berlin
+          street: Platz der Republik 1
+          name: John Doe
+          email: john.doe@googlemail.com
+        - zip: "11011"
+          country: DEU
+          phone: +49-30-123456789
+          city: Berlin
+          street: Platz der Republik 1
+          name: John Doe
+          email: john.doe@googlemail.com
+        contacts:
+        - zip: "11011"
+          country: DEU
+          phone: +49-30-123456789
+          city: Berlin
+          street: Platz der Republik 1
+          name: John Doe
+          email: john.doe@googlemail.com
+        - zip: "11011"
+          country: DEU
+          phone: +49-30-123456789
+          city: Berlin
+          street: Platz der Republik 1
+          name: John Doe
+          email: john.doe@googlemail.com
+      properties:
+        id:
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+          format: uuid
+          type: string
+        visitor:
+          items:
+            $ref: '#/components/schemas/Visitor'
+          type: array
+        visits:
+          items:
+            $ref: '#/components/schemas/Visit'
+          type: array
+        finalized:
+          default: false
+          type: boolean
+        contacts:
+          items:
+            $ref: '#/components/schemas/Visitor'
+          type: array
+      type: object
