@@ -1,6 +1,7 @@
 package covidify
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -40,9 +41,9 @@ func NewServer() (s *Server, err error) {
 }
 
 func (s *Server) Run() error {
-
+	addr := fmt.Sprintf("%s:%d", s.config.Bind, *s.config.Port)
 	svr := &http.Server{
-		Addr:           ":8080",
+		Addr:           addr,
 		Handler:        s.g,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
