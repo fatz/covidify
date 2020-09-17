@@ -48,7 +48,7 @@ func (s *Server) AddVisit(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, v)
+	c.JSON(http.StatusCreated, v)
 }
 
 // CheckVisit - Visit status check
