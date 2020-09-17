@@ -1,4 +1,4 @@
-package visitgenerator
+package main
 
 import (
 	"math/rand"
@@ -9,17 +9,16 @@ import (
 
 const MaxTableVisitors int = 6
 
-func NewFakeVisit(tablenr string, tables []string) *models.Visit {
-	table := "foo"
-
-	if len(tables) >= 1 {
-		table = tables[rand.Intn(len(tables))]
-	}
-
+func NewFakeVisit(table string) *models.Visit {
 	v := models.NewVisit()
 	v.TableNumber = table
+	numVisitors := 1
 
-	v.Visitors = make([]models.Visitor, rand.Intn(MaxTableVisitors))
+	if randNum := rand.Intn(MaxTableVisitors); randNum > 1 {
+		numVisitors = randNum
+	}
+
+	v.Visitors = make([]models.Visitor, numVisitors)
 
 	for i, _ := range v.Visitors {
 		v.Visitors[i] = *NewFakeVisitor()

@@ -1,4 +1,4 @@
-package visitgenerator
+package main
 
 import (
 	"fmt"
