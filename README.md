@@ -14,4 +14,5 @@ To simulate the user behaviour a visit generator based on locust and boom is gen
 The app and the generator should expose their metrics via Prometheus Endpoint config so dcos-monitoring will be able to receive the metrics
 
 
-... TBD
+## API
+See [API Docs](./doc)
