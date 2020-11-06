@@ -15,5 +15,4 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o /go/
 
 FROM locustio:locust
 COPY --from=build-env /go/bin/generator /go/bin/generator
-EXPOSE 8080/tcp
-ENTRYPOINT ["/go/bin/covidify"]
+COPY covidify/test/visitgenerator/locust/prometheus_exporter.py
