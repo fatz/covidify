@@ -8,6 +8,8 @@ import (
 type Config struct {
 	CassandraConnection string
 	CassandraKeyspace   string
+	CassandraUsername   string
+	CassandraPassword   string
 	Port                *int
 	Bind                string
 }

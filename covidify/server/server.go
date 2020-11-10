@@ -22,7 +22,12 @@ func NewServerWithConfig(c *Config) (s *Server, err error) {
 
 	s.config = c
 
-	s.db, err = cdb.NewDB(c.GetCassandraCluster(), c.CassandraKeyspace)
+	switch {
+	case c.CassandraUsername != "" && c.CassandraPassword != "":
+		s.db, err = cdb.NewDBWithPW(c.GetCassandraCluster(), c.CassandraKeyspace, c.CassandraUsername, c.CassandraPassword)
+	default:
+		s.db, err = cdb.NewDB(c.GetCassandraCluster(), c.CassandraKeyspace)
+	}
 	if err != nil {
 		return nil, err
 	}

@@ -30,6 +30,8 @@ func main() {
 	fs.StringVar(&config.CassandraKeyspace, "keyspace", "covidify", "Cassandra keyspace to be used")
 	fs.StringVar(&config.Bind, "bind", "0.0.0.0", "address to bind to")
 	fs.IntVar(config.Port, "port", 8080, "port to bind to")
+	fs.StringVar(&config.CassandraUsername, "username", "", "Cassandra Authentication Username")
+	fs.StringVar(&config.CassandraPassword, "password", "", "Cassandra Authentication Password")
 
 	fs.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])

@@ -25,6 +25,26 @@ func NewDB(cluster []string, keyspace string) (db *DB, err error) {
 
 	db.Cluster = cluster
 	db.Keyspace = keyspace
+	db.Authencitcator = nil
+
+	return db.Connect()
+}
+
+// NewDBWithPW does a simply connect to Cassandra by cluster address and keyspace using username and password
+func NewDBWithPW(cluster []string, keyspace, username, password string) (db *DB, err error) {
+	db = new(DB)
+
+	if len(cluster) < 1 {
+		return nil, fmt.Errorf("Specify at least one cluster node")
+	}
+
+	db.Cluster = cluster
+	db.Keyspace = keyspace
+
+	db.Authencitcator = gocql.PasswordAuthenticator{
+		Username: username,
+		Password: password,
+	}
 
 	return db.Connect()
 }
@@ -33,6 +53,10 @@ func (d *DB) Connect() (*DB, error) {
 	d.ClusterConfig = gocql.NewCluster(d.Cluster...)
 	d.ClusterConfig.Keyspace = d.Keyspace
 	d.ClusterConfig.Consistency = gocql.Quorum
+
+	if d.Authencitcator != nil {
+		d.ClusterConfig.Authenticator = d.Authencitcator
+	}
 
 	_, err := d.Session()
 
