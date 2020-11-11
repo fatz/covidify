@@ -2,10 +2,21 @@ package covidify
 
 import "strings"
 
+func dropEmpty(in []string) (o []string) {
+	for _, s := range in {
+
+		if st := strings.TrimSpace(s); st != "" {
+			o = append(o, st)
+		}
+	}
+
+	return o
+}
+
 func (s *Server) statsDPrefixStat(stat string) string {
 	p := strings.Split(s.config.StatsDPrefix, ".")
 	p = append(p, strings.Split(stat, ".")...)
-	return strings.Join(p, ".")
+	return strings.Join(dropEmpty(p), ".")
 }
 
 // StatsDIncrement wraps statsd.Increment() adding prefix

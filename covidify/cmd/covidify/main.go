@@ -36,6 +36,7 @@ func main() {
 	fs.StringVar(&config.CassandraPassword, "password", "", "Cassandra Authentication Password")
 	fs.StringVar(&config.StatsDHost, "statsdhost", "127.0.0.1", "Host or IP to send statsD metrics")
 	fs.IntVar(&config.StatsDPort, "statsdport", 8125, "statsd Port")
+	fs.StringVar(&config.StatsDPrefix, "statsdprefix", "", "statsd metrics prefix")
 	fs.StringVar(&loglevel, "log", "info", "Loglevel to be used")
 
 
