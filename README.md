@@ -124,3 +124,46 @@ dcos cassandra --name "testing/covidify/cassandra" endpoints native-client | jq 
 
 
 curl -H "Host: covidify.dcos.d2iq.com" -X POST "http://<yourclusteraddress>/visit" -H  "accept: */*" -H  "Content-Type: application/json" -d "{\"id\":\"d290f1ee-6c54-4b01-90e6-d701748f0851\",\"table_number\":\"outside-1\",\"visitors\":[{\"name\":\"John Doe\",\"email\":\"john.doe@googlemail.com\",\"phone\":\"+49-30-123456789\",\"country\":\"DEU\",\"city\":\"Berlin\",\"zip_code\":\"11011\",\"street\":\"Platz der Republik 1\"}],\"risk\":{\"risk\":\"low\",\"description\":\"string\"}}"
+
+
+### kubernetes
+
+Start cassandra
+
+#### Using cass operator on konvoy
+
+```
+K8S_VER=1.18 kubectl apply -f https://raw.githubusercontent.com/datastax/cass-operator/v1.4.1/docs/user/cass-operator-manifests-$K8S_VER.yaml
+kubectl -n cass-operator apply -f deployments/dkp/cassandra.yml
+```
+
+
+Watch for ready state
+
+
+Apply csql
+```
+CASS_PASS=$(kubectl -n cass-operator get secret cluster1-superuser -o json | jq -r '.data.password' | base64 --decode)
+CASS_USER=$(kubectl -n cass-operator get secret cluster1-superuser -o json | jq -r '.data.username' | base64 --decode)
+kubectl -n cass-operator exec -ti cluster1-dc1-default-sts-0 -c cassandra -- sh -c "cqlsh -u '$CASS_USER' -p '$CASS_PASS'"
+```
+
+paste [model.csql](./model.sql)
+
+
+Create namespace:
+```
+kubectl create namespace covidify
+```
+
+Create a secret with Cassandra credentials:
+
+```
+kubectl create secret generic cassandra-credentials -n covidify --from-literal=COVIDIFY_USERNAME=$(kubectl -n cass-operator get secret cluster1-superuser -o json | jq -r '.data.username' | base64 --decode) --from-literal=COVIDIFY_PASSWORD=$(kubectl -n cass-operator get secret cluster1-superuser -o json | jq -r '.data.password' | base64 --decode)
+```
+
+Start app, service and ingress
+
+```
+kubectl apply -n covidify -f deployments/dkp/api.yml
+```

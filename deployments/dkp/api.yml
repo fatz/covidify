@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: covidify-api
+  labels:
+    app: covidify
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: covidify
+  template:
+    metadata:
+      labels:
+        app: covidify
+    spec:
+      containers:
+      - name: api
+        image: fatz/covidify:latest
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - secretRef:
+            name: cassandra-credentials
+        env:
+        - name: COVIDIFY_CASSANDRA
+          value: cluster1-dc1-all-pods-service.cass-operator.svc.cluster.local
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: covidify-api
+spec:
+  ports:
+  - name: http
+    protocol: TCP
+    targetPort: 8080
+    port: 80
+  selector:
+    app: covidify
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: covidify
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: covidify.dcos.d2iq.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: covidify-api
+          servicePort: http
