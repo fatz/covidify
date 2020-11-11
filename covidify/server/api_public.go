@@ -11,6 +11,7 @@
 package covidify
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -47,6 +48,13 @@ func (s *Server) AddVisit(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	//StatsD
+	s.statsDIncrement("covidify.visit")
+	s.statsDIncrement(fmt.Sprintf("covidify.visit.table.%s", v.TableNumber))
+	s.statsDIncrementByValue("covidify.visitors", len(v.Visitors))
+
+	//Prometheus
 
 	c.JSON(http.StatusCreated, v)
 }

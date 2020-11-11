@@ -24,6 +24,8 @@ var config *covidify.Config
 
 func main() {
 	config = covidify.NewConfig()
+
+	var loglevel string
 	fs := flag.NewFlagSetWithEnvPrefix(os.Args[0], "COVIDIFY", 0)
 
 	fs.StringVar(&config.CassandraConnection, "cassandra", "127.0.0.1", "comma seperated list of cassandra nodes")
@@ -32,6 +34,14 @@ func main() {
 	fs.IntVar(config.Port, "port", 8080, "port to bind to")
 	fs.StringVar(&config.CassandraUsername, "username", "", "Cassandra Authentication Username")
 	fs.StringVar(&config.CassandraPassword, "password", "", "Cassandra Authentication Password")
+	fs.StringVar(&config.StatsDHost, "statsdhost", "127.0.0.1", "Host or IP to send statsD metrics")
+	fs.IntVar(&config.StatsDPort, "statsdport", 8125, "statsd Port")
+	fs.StringVar(&loglevel, "log", "info", "Loglevel to be used")
+
+
+	logger := log.New()
+
+	config.Logger = logger
 
 	fs.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
@@ -41,23 +51,45 @@ func main() {
 
 	fs.Parse(os.Args[1:])
 
+	if lvl, err := log.ParseLevel(loglevel); err == nil {
+		logger.SetLevel(lvl)
+	} else {
+		logger.Fatal(err)
+		os.Exit(1)
+	}
+
 	if port := os.Getenv("PORT"); port != "" {
 		if p, err := strconv.Atoi(port); err == nil {
-			log.Infof("$PORT set to %d overwrite config", p)
+			logger.Infof("$PORT set to %d overwrite config", p)
 			config.Port = &p
 		} else {
-			log.Warnf("$PORT is set to %s unable to parse as port: %s", port, err)
+			logger.Warnf("$PORT is set to %s unable to parse as port: %s", port, err)
 		}
 	}
 
-	log.Tracef("Initializing Server with config: %#v", config)
-	log.Infof("Initializing Server with config: %#v", config)
+	// use STATSD_UDP_HOST and STATSD_UDP_PORT on DC/OS see: https://docs.d2iq.com/mesosphere/dcos/2.2/metrics/#operations-on-metrics
+	if statsDHost := os.Getenv("STATSD_UDP_HOST"); statsDHost != "" {
+		if statsDPort := os.Getenv("STATSD_UDP_PORT"); statsDPort != "" {
+			if sp, err := strconv.Atoi(statsDPort); err == nil {
+				logger.Info("Found STATSD_UDP_HOST overwriting arguments")
+				config.StatsDHost = statsDHost
+				config.StatsDPort = sp
+			} else {
+				logger.Warnf("Cannot use STATSD_UDP_PORT (%v) as port %v - Continuing with default/arguments", statsDPort, err)
+			}
+		} else {
+			logger.Warn("Found STATSD_UDP_HOST but STATSD_UDP_PORT not set. Continuing with default/arguments")
+		}
+	}
+
+	logger.Tracef("Initializing Server with config: %#v", config)
+	logger.Infof("Initializing Server with config: %#v", config)
 
 	server, err := covidify.NewServerWithConfig(config)
 	if err != nil {
-		log.Fatalf("Could not initialize Server %v", err)
+		logger.Fatalf("Could not initialize Server %v", err)
 	}
 
-	log.Info("Server started")
+	logger.Info("Server started")
 	server.Run()
 }

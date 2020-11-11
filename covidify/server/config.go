@@ -3,6 +3,8 @@ package covidify
 import (
 	"fmt"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Config struct {
@@ -12,6 +14,11 @@ type Config struct {
 	CassandraPassword   string
 	Port                *int
 	Bind                string
+	StatsDHost          string
+	StatsDPort          int
+	StatsDPrefix        string
+
+	Logger *log.Logger
 }
 
 func NewConfig() *Config {
@@ -25,6 +32,10 @@ func NewConfig() *Config {
 	c.Port = &p
 	c.Bind = ""
 
+	c.StatsDHost = "localhost"
+	c.StatsDPort = 8125
+
+	c.Logger = log.New()
 	return c
 }
 

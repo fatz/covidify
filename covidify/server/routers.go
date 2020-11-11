@@ -12,6 +12,7 @@ package covidify
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/toorop/gin-logrus"
 )
 
 // Route is the information for every URI.
@@ -31,7 +32,11 @@ type Routes []Route
 
 // NewRouter returns a new router.
 func (s *Server) NewRouter() *gin.Engine {
-	router := gin.Default()
+	router := gin.New()
+
+	router.Use(ginlogrus.Logger(s.config.Logger))
+	router.Use(gin.Recovery())
+
 
 	router.GET("/health", s.Health)
 	router.POST("/visit", s.AddVisit)

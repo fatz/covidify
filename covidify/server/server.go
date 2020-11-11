@@ -8,6 +8,7 @@ import (
 	cdb "github.com/fatz/covidify/covidify/db"
 	"github.com/gin-gonic/gin"
 	"github.com/zsais/go-gin-prometheus"
+	"github.com/etsy/statsd/examples/go"
 )
 
 type Server struct {
@@ -15,10 +16,13 @@ type Server struct {
 	db     *cdb.DB
 
 	g *gin.Engine
+
+	statsd *statsd.StatsdClient
 }
 
 func NewServerWithConfig(c *Config) (s *Server, err error) {
 	s = new(Server)
+	gin.SetMode(gin.ReleaseMode)
 
 	s.config = c
 
@@ -32,6 +36,7 @@ func NewServerWithConfig(c *Config) (s *Server, err error) {
 		return nil, err
 	}
 
+	s.statsd = statsd.New(c.StatsDHost, c.StatsDPort)
 	s.g = s.NewRouter()
 	p := ginprometheus.NewPrometheus("gin")
 	p.Use(s.g)
