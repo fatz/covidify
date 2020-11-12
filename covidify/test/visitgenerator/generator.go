@@ -3,10 +3,17 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"github.com/myzhan/boomer"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/go-resty/resty/v2"
+	"github.com/namsral/flag"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const restaurants int = 30
@@ -17,58 +24,140 @@ var baseURL string
 
 func init() {
 	tables = GenTableList(restaurants, maxtables)
-	baseURL = "http://127.0.0.1:8080"
 }
 
 func getRandTable(tableList []string) string {
 	return tableList[rand.Intn(len(tableList))]
 }
 
-func visit() {
-	client :=  resty.New()
+type RandomVisitGen struct {
+	successCounter prometheus.Counter
+	failureCounter prometheus.Counter
+
+	Headers map[string]string
+	BaseURL string
+	Delay   int
+
+	Name string
+}
+
+func NewRandomVisitGen(name, baseURL string, successCounter, failureCounter prometheus.Counter) *RandomVisitGen {
+	r := new(RandomVisitGen)
+
+	r.successCounter = successCounter
+	r.failureCounter = failureCounter
+
+	r.Name = name
+	r.Delay = 0
+	r.BaseURL = baseURL
+
+	return r
+}
+
+func (r *RandomVisitGen) success() {
+	log.Infof("[%s] Sucessfull", r.Name)
+	r.successCounter.Inc()
+}
+
+func (r *RandomVisitGen) failure(errStr string) {
+	log.Warnf("[%s] Failure - %s", r.Name, errStr)
+	r.failureCounter.Inc()
+}
+
+func (r *RandomVisitGen) visit() {
+	client := resty.New()
 	table := getRandTable(tables)
 	v := NewFakeVisit(table)
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
+		SetHeaders(r.Headers).
 		SetBody(*v).
-		Post(fmt.Sprintf("%s/visit", baseURL))
-
+		Post(fmt.Sprintf("%s/visit", r.BaseURL))
 
 	if err != nil {
-		log.Error(err)
-		boomer.RecordFailure("http", "visit", resp.Time().Microseconds(), err.Error())
+		// log.Error(err)
+		// boomer.RecordFailure("http", "visit", resp.Time().Microseconds(), err.Error())
+		r.failure(err.Error())
 		return
 	}
 
 	if resp.StatusCode() != 201 {
 		errStr := fmt.Sprintf("Unexpected POST response code: %d Response: '%s'", resp.StatusCode(), string(resp.Body()))
 
-		log.Error(errStr)
-		boomer.RecordFailure("http", "visit", resp.Time().Microseconds(), errStr)
+		// log.Error(errStr)
+		// boomer.RecordFailure("http", "visit", resp.Time().Microseconds(), errStr)
+		r.failure(errStr)
 		return
 	}
 
-	boomer.RecordSuccess("http", "visit", resp.Time().Microseconds(), resp.Size())
+	// boomer.RecordSuccess("http", "visit", resp.Time().Microseconds(), resp.Size())
+	r.success()
 }
 
-func report() {
-	// nothing yet
+func (r *RandomVisitGen) Run() {
+	for {
+		r.visit()
+		time.Sleep(time.Duration(r.Delay) * time.Millisecond)
+	}
 }
 
 func main() {
-	task1 := &boomer.Task{
-		Name:   "visit",
-		Weight: 96,
-		Fn:     visit,
+	instances := 4
+	delay := 100
+	url := "http://localhost:8080"
+	hostHeader := ""
+	fs := flag.NewFlagSetWithEnvPrefix(os.Args[0], "GENERATOR", 0)
+
+	fs.StringVar(&url, "url", "http://localhost:8080", "url to be used")
+	fs.StringVar(&hostHeader, "hostheader", "", "Change the Host header")
+	fs.IntVar(&delay, "delay", 100, "Delay in ms")
+	fs.IntVar(&instances, "instances", 4, "Load generator instances to start.")
+
+	fs.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+		fs.PrintDefaults()
+		os.Exit(1)
 	}
 
-	// 4% infected
-	task2 := &boomer.Task{
-		Name:   "report",
-		Weight: 4,
-		Fn:     report,
+	fs.Parse(os.Args[1:])
+
+	headers := map[string]string{}
+
+	if hostHeader != "" {
+		headers["Host"] = hostHeader
 	}
 
-	boomer.Run(task1, task2)
+	gens := make([]*RandomVisitGen, instances)
+
+	successCounter := promauto.NewCounter(prometheus.CounterOpts{
+		Name: "covidify_generator_success",
+		Help: "The total number of Successful requests",
+	})
+	failureCounter := promauto.NewCounter(prometheus.CounterOpts{
+		Name: "covidify_generator_failure",
+		Help: "The total number of Successful requests",
+	})
+
+	for i := 0; i < instances; i++ {
+		name := fmt.Sprintf("proc%0d", i)
+		gens[i] = NewRandomVisitGen(name, url, successCounter, failureCounter)
+		gens[i].Delay = delay
+		gens[i].Headers = headers
+	}
+
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		http.ListenAndServe(":2112", nil)
+	}()
+
+	if len(gens) > 1 {
+		for i, g := range gens[1:] {
+			log.Infof("Starting thread %d", i+1)
+			go g.Run()
+		}
+	}
+
+	log.Info("Starting default thread")
+	gens[0].Run()
 }

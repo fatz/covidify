@@ -10,9 +10,10 @@ RUN go mod download
 COPY . .
 
 # Build the binary
-# RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o /go/bin/hello
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o /go/bin/generator covidify/test/visitgenerator/generator.go covidify/test/visitgenerator/tables.go covidify/test/visitgenerator/visit.go
 
-FROM locustio:locust
+FROM scratch
+ENV GIN_MODE=release
 COPY --from=build-env /go/bin/generator /go/bin/generator
-COPY covidify/test/visitgenerator/locust/prometheus_exporter.py
+EXPOSE 2112/tcp
+ENTRYPOINT ["/go/bin/generator"]

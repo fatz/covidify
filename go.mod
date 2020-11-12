@@ -16,7 +16,7 @@ require (
 	github.com/myzhan/boomer v0.0.0-20200828033921-b29cf430b44f
 	github.com/namsral/flag v1.7.4-pre
 	github.com/olekukonko/tablewriter v0.0.4 // indirect
-	github.com/prometheus/client_golang v1.7.1 // indirect
+	github.com/prometheus/client_golang v1.7.1
 	github.com/relops/cqlr v0.0.0-20141111204017-0ac35893ea3f
 	github.com/rocksolidlabs/gin-logrus v0.0.0-20180520211829-e80b1f0c4a0c
 	github.com/shirou/gopsutil v2.20.8+incompatible // indirect
