@@ -132,7 +132,7 @@ func main() {
 		Name: "covidify_generator_request",
 		Help: "The total number requests",
 	},
-		[]string{"state", "instance", "handler"})
+		[]string{"state", "thread", "handler"})
 
 	for i := 0; i < instances; i++ {
 		name := fmt.Sprintf("proc%0d", i)
