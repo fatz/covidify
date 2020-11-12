@@ -31,8 +31,7 @@ func getRandTable(tableList []string) string {
 }
 
 type RandomVisitGen struct {
-	successCounter prometheus.Counter
-	failureCounter prometheus.Counter
+	requestCounter *prometheus.CounterVec
 
 	Headers map[string]string
 	BaseURL string
@@ -41,11 +40,10 @@ type RandomVisitGen struct {
 	Name string
 }
 
-func NewRandomVisitGen(name, baseURL string, successCounter, failureCounter prometheus.Counter) *RandomVisitGen {
+func NewRandomVisitGen(name, baseURL string, requestCounter *prometheus.CounterVec) *RandomVisitGen {
 	r := new(RandomVisitGen)
 
-	r.successCounter = successCounter
-	r.failureCounter = failureCounter
+	r.requestCounter = requestCounter
 
 	r.Name = name
 	r.Delay = 0
@@ -56,12 +54,12 @@ func NewRandomVisitGen(name, baseURL string, successCounter, failureCounter prom
 
 func (r *RandomVisitGen) success() {
 	log.Infof("[%s] Sucessfull", r.Name)
-	r.successCounter.Inc()
+	r.requestCounter.WithLabelValues("success", r.Name, "visit").Inc()
 }
 
 func (r *RandomVisitGen) failure(errStr string) {
 	log.Warnf("[%s] Failure - %s", r.Name, errStr)
-	r.failureCounter.Inc()
+	r.requestCounter.WithLabelValues("failure", r.Name, "visit").Inc()
 }
 
 func (r *RandomVisitGen) visit() {
@@ -130,18 +128,15 @@ func main() {
 
 	gens := make([]*RandomVisitGen, instances)
 
-	successCounter := promauto.NewCounter(prometheus.CounterOpts{
-		Name: "covidify_generator_success",
-		Help: "The total number of Successful requests",
-	})
-	failureCounter := promauto.NewCounter(prometheus.CounterOpts{
-		Name: "covidify_generator_failure",
-		Help: "The total number of Successful requests",
-	})
+	requestCounter := promauto.NewCounterVec(prometheus.CounterOpts{
+		Name: "covidify_generator_request",
+		Help: "The total number requests",
+	},
+		[]string{"state", "instance", "handler"})
 
 	for i := 0; i < instances; i++ {
 		name := fmt.Sprintf("proc%0d", i)
-		gens[i] = NewRandomVisitGen(name, url, successCounter, failureCounter)
+		gens[i] = NewRandomVisitGen(name, url, requestCounter)
 		gens[i].Delay = delay
 		gens[i].Headers = headers
 	}
