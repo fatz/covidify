@@ -39,11 +39,10 @@ func NewServerWithConfig(c *Config) (s *Server, err error) {
 	}
 
 	s.statsd = statsd.New(c.StatsDHost, c.StatsDPort)
-	s.g = s.NewRouter()
-
 	p := ginprometheus.NewPrometheus("gin")
 	p.MetricsPath = s.config.PrometheusMetricsPath
-	s.g.Use(p.HandlerFunc())
+
+	s.g = s.NewRouterWithMiddleware([]gin.HandlerFunc{p.HandlerFunc()},nil,nil)
 
 	if s.config.PrometheusStandalone {
 		// Start New Engine for standalone

@@ -32,16 +32,26 @@ type Routes []Route
 
 // NewRouter returns a new router.
 func (s *Server) NewRouter() *gin.Engine {
+	router := s.NewRouterWithMiddleware(nil, nil, nil)
+
+	return router
+}
+
+func (s *Server) NewRouterWithMiddleware(pre, mid, post []gin.HandlerFunc) *gin.Engine {
 	router := gin.New()
 
+	router.Use(pre...)
 	router.Use(ginlogrus.Logger(s.config.Logger))
 	router.Use(gin.Recovery())
 
+	router.Use(mid...)
 
 	router.GET("/health", s.Health)
 	router.POST("/visit", s.AddVisit)
 	router.GET("/visit/:visitID", s.CheckVisit)
 	router.POST("/report/visitor", s.AddReportVisitor)
+
+	router.Use(post...)
 
 	return router
 }
