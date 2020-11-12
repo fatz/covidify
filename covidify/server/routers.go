@@ -37,6 +37,7 @@ func (s *Server) NewRouter() *gin.Engine {
 	return router
 }
 
+//NewRouterWithMiddleware creates a new *gin.Engine while assigning middle ware
 func (s *Server) NewRouterWithMiddleware(pre, mid, post []gin.HandlerFunc) *gin.Engine {
 	router := gin.New()
 
@@ -46,12 +47,23 @@ func (s *Server) NewRouterWithMiddleware(pre, mid, post []gin.HandlerFunc) *gin.
 
 	router.Use(mid...)
 
+	// should be used with Routes
 	router.GET("/health", s.Health)
 	router.POST("/visit", s.AddVisit)
 	router.GET("/visit/:visitID", s.CheckVisit)
 	router.POST("/report/visitor", s.AddReportVisitor)
 
 	router.Use(post...)
+
+	return router
+}
+
+// NewPrometheusRouter creates a *gin.Engine for Prometheus standalone
+func (s *Server) NewPrometheusRouter() *gin.Engine {
+	router := gin.New()
+
+	router.Use(ginlogrus.Logger(s.config.Logger))
+	router.Use(gin.Recovery())
 
 	return router
 }

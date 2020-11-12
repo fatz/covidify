@@ -46,7 +46,7 @@ func NewServerWithConfig(c *Config) (s *Server, err error) {
 
 	if s.config.PrometheusStandalone {
 		// Start New Engine for standalone
-		s.p = gin.New()
+		s.p = s.NewPrometheusRouter()
 		p.SetMetricsPath(s.p)
 	} else {
 		// use default router
