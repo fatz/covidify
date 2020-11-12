@@ -18,6 +18,10 @@ type Config struct {
 	StatsDPort          int
 	StatsDPrefix        string
 
+	PrometheusPort        int
+	PrometheusStandalone  bool
+	PrometheusMetricsPath string
+
 	Logger *log.Logger
 }
 
@@ -34,6 +38,10 @@ func NewConfig() *Config {
 
 	c.StatsDHost = "localhost"
 	c.StatsDPort = 8125
+
+	c.PrometheusPort = 8081
+	c.PrometheusStandalone = true
+	c.PrometheusMetricsPath = "/metrics"
 
 	c.Logger = log.New()
 	return c

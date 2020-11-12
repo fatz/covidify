@@ -16,6 +16,8 @@ type Server struct {
 	db     *cdb.DB
 
 	g *gin.Engine
+	// Prometheus
+	p *gin.Engine
 
 	statsd *statsd.StatsdClient
 }
@@ -38,8 +40,20 @@ func NewServerWithConfig(c *Config) (s *Server, err error) {
 
 	s.statsd = statsd.New(c.StatsDHost, c.StatsDPort)
 	s.g = s.NewRouter()
+
 	p := ginprometheus.NewPrometheus("gin")
-	p.Use(s.g)
+	p.MetricsPath = s.config.PrometheusMetricsPath
+	s.g.Use(p.HandlerFunc())
+
+	if s.config.PrometheusStandalone {
+		// Start New Engine for standalone
+		s.p = gin.New()
+		p.SetMetricsPath(s.p)
+	} else {
+		// use default router
+		p.SetMetricsPath(s.g)
+	}
+
 
 	return s, nil
 }
@@ -60,6 +74,21 @@ func (s *Server) Run() error {
 		MaxHeaderBytes: 1 << 20,
 	}
 
+	if s.p != nil {
+		promAddr := fmt.Sprintf("%s:%d", s.config.Bind, s.config.PrometheusPort)
+		promSvr := &http.Server{
+			Addr:           promAddr,
+			Handler:        s.p,
+			ReadTimeout:    10 * time.Second,
+			WriteTimeout:   10 * time.Second,
+			MaxHeaderBytes: 1 << 20,
+		}
+		// start standalone Prometheus router
+		s.config.Logger.Infof("Starting Prometheus server: %s", promAddr)
+		go func() { promSvr.ListenAndServe() }()
+	}
+
+	s.config.Logger.Infof("Starting server: %s", addr)
 	return svr.ListenAndServe()
 }
 

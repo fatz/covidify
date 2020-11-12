@@ -38,6 +38,9 @@ func main() {
 	fs.IntVar(&config.StatsDPort, "statsdport", 8125, "statsd Port")
 	fs.StringVar(&config.StatsDPrefix, "statsdprefix", "", "statsd metrics prefix")
 	fs.StringVar(&loglevel, "log", "info", "Loglevel to be used")
+	fs.IntVar(&config.PrometheusPort, "prometheusport", 8081, "Prometheus stand alone port")
+	fs.BoolVar(&config.PrometheusStandalone, "prometheusstandalone", true, "Run prometheus metrics on its own port")
+	fs.StringVar(&config.PrometheusMetricsPath, "prometheuspath", "/metrics", "Path to be used serving metrics")
 
 
 	logger := log.New()
