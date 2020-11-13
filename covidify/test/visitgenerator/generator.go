@@ -143,7 +143,7 @@ func main() {
 	requestTimer := promauto.NewHistogramVec(prometheus.HistogramOpts{
 		Name:    "covidify_generator_request_response_seconds",
 		Help:    "Responsetime in Ms",
-		Buckets: []float64{.025, .05, .08, .1, .15, .2, .25, .3, .35, .4, .45, .5, 1, 5, 10},
+		Buckets: []float64{0.005, 0.01, .015, .02, .025, .05, .08, .1, .15, .2, .25, .3, .35, .4, .45, .5, 1, 5, 10},
 	},
 		[]string{"state", "thread", "handler"})
 
