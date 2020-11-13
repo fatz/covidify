@@ -32,6 +32,7 @@ func getRandTable(tableList []string) string {
 
 type RandomVisitGen struct {
 	requestCounter *prometheus.CounterVec
+	requestTimer   *prometheus.HistogramVec
 
 	Headers map[string]string
 	BaseURL string
@@ -40,10 +41,11 @@ type RandomVisitGen struct {
 	Name string
 }
 
-func NewRandomVisitGen(name, baseURL string, requestCounter *prometheus.CounterVec) *RandomVisitGen {
+func NewRandomVisitGen(name, baseURL string, requestCounter *prometheus.CounterVec, requestTimer *prometheus.HistogramVec) *RandomVisitGen {
 	r := new(RandomVisitGen)
 
 	r.requestCounter = requestCounter
+	r.requestTimer = requestTimer
 
 	r.Name = name
 	r.Delay = 0
@@ -52,14 +54,18 @@ func NewRandomVisitGen(name, baseURL string, requestCounter *prometheus.CounterV
 	return r
 }
 
-func (r *RandomVisitGen) success() {
-	log.Infof("[%s] Sucessfull", r.Name)
-	r.requestCounter.WithLabelValues("success", r.Name, "visit").Inc()
+func (r *RandomVisitGen) success(t time.Duration) {
+	log.Infof("[%s] Sucessfull time: %d ms, %f s", r.Name, t.Milliseconds(), t.Seconds())
+	labels := []string{"success", r.Name, "visit"}
+	r.requestCounter.WithLabelValues(labels...).Inc()
+	r.requestTimer.WithLabelValues(labels...).Observe(t.Seconds())
 }
 
-func (r *RandomVisitGen) failure(errStr string) {
+func (r *RandomVisitGen) failure(errStr string, t time.Duration) {
 	log.Warnf("[%s] Failure - %s", r.Name, errStr)
-	r.requestCounter.WithLabelValues("failure", r.Name, "visit").Inc()
+	labels := []string{"failure", r.Name, "visit"}
+	r.requestCounter.WithLabelValues(labels...).Inc()
+	r.requestTimer.WithLabelValues(labels...).Observe(t.Seconds())
 }
 
 func (r *RandomVisitGen) visit() {
@@ -74,23 +80,23 @@ func (r *RandomVisitGen) visit() {
 		Post(fmt.Sprintf("%s/visit", r.BaseURL))
 
 	if err != nil {
-		// log.Error(err)
-		// boomer.RecordFailure("http", "visit", resp.Time().Microseconds(), err.Error())
-		r.failure(err.Error())
+		t := time.Duration(0)
+		if resp != nil {
+			t = resp.Time()
+		}
+		r.failure(err.Error(), t)
 		return
 	}
 
 	if resp.StatusCode() != 201 {
 		errStr := fmt.Sprintf("Unexpected POST response code: %d Response: '%s'", resp.StatusCode(), string(resp.Body()))
 
-		// log.Error(errStr)
-		// boomer.RecordFailure("http", "visit", resp.Time().Microseconds(), errStr)
-		r.failure(errStr)
+		r.failure(errStr, resp.Time())
 		return
 	}
 
 	// boomer.RecordSuccess("http", "visit", resp.Time().Microseconds(), resp.Size())
-	r.success()
+	r.success(resp.Time())
 }
 
 func (r *RandomVisitGen) Run() {
@@ -134,9 +140,16 @@ func main() {
 	},
 		[]string{"state", "thread", "handler"})
 
+	requestTimer := promauto.NewHistogramVec(prometheus.HistogramOpts{
+		Name:    "covidify_generator_request_response_seconds",
+		Help:    "Responsetime in Ms",
+		Buckets: []float64{.025, .05, .08, .1, .15, .2, .25, .3, .35, .4, .45, .5, 1, 5, 10},
+	},
+		[]string{"state", "thread", "handler"})
+
 	for i := 0; i < instances; i++ {
 		name := fmt.Sprintf("proc%0d", i)
-		gens[i] = NewRandomVisitGen(name, url, requestCounter)
+		gens[i] = NewRandomVisitGen(name, url, requestCounter, requestTimer)
 		gens[i].Delay = delay
 		gens[i].Headers = headers
 	}
