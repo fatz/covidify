@@ -39,13 +39,15 @@ func (s *Server) AddVisit(c *gin.Context) {
 	}
 
 	if err := visit.Valid(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		s.config.Logger.Errorf("Visit Data invalid: %v - %s", visit, err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Visit Data not valid: %s", err.Error())})
 		return
 	}
 
 	v, err := s.db.CreateVisit(visit)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		s.config.Logger.Errorf("Error storing visit %v - %s", visit, err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not store visit"})
 		return
 	}
 

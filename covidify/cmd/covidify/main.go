@@ -105,7 +105,7 @@ func main() {
 
 		err := server.Clean(beforeDate)
 		if err != nil {
-			logger.Error("Error during clean %s", err)
+			logger.Error("Error during clean %s", err.Error())
 			os.Exit(1)
 		}
 
