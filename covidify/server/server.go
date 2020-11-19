@@ -104,7 +104,7 @@ func (h *Health) ReturnCode() int {
 
 // Health - Server health status
 func (s *Server) Health(c *gin.Context) {
-	var h Health
+	h := make(Health)
 
 	dbOK, err := s.db.Health()
 	if err != nil {
