@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/gocql/gocql"
 )
@@ -53,6 +54,7 @@ func (d *DB) Connect() (*DB, error) {
 	d.ClusterConfig = gocql.NewCluster(d.Cluster...)
 	d.ClusterConfig.Keyspace = d.Keyspace
 	d.ClusterConfig.Consistency = gocql.Quorum
+	d.ClusterConfig.Timeout = 10 * time.Second
 
 	if d.Authencitcator != nil {
 		d.ClusterConfig.Authenticator = d.Authencitcator
