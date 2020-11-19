@@ -1,4 +1,4 @@
-CREATE KEYSPACE covidify WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'} AND durable_writes = true;
+CREATE KEYSPACE covidify WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '2'} AND durable_writes = true;
 
 CREATE TYPE covidify.visitor (
   name text,
@@ -22,5 +22,5 @@ CREATE TABLE covidify.visit (
   checkout timestamp,
   visitors list<frozen<visitor>>,
   risk frozen<risk>,
-  PRIMARY KEY (id)
+  PRIMARY KEY (table_number, checkin, id)
 );
