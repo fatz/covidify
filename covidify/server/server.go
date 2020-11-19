@@ -91,7 +91,26 @@ func (s *Server) Run() error {
 	return svr.ListenAndServe()
 }
 
+type Health map[string]bool
+
+func (h *Health) ReturnCode() int {
+	for _, s := range *h {
+		if !s {
+			return http.StatusInternalServerError
+		}
+	}
+	return http.StatusOK
+}
+
 // Health - Server health status
 func (s *Server) Health(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{})
+	var h Health
+
+	dbOK, err := s.db.Health()
+	if err != nil {
+		s.config.Logger.Errorf("DB Healthy: %t - %s", dbOK, err.Error())
+	}
+	h["DB"] = dbOK
+
+	c.JSON(h.ReturnCode(), h)
 }
