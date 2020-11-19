@@ -60,6 +60,9 @@ func (d *DB) GetTables() ([]string, error) {
 	for iter.Scan(&tn) {
 		s = append(s, tn)
 	}
+	if err := iter.Close(); err != nil {
+		return s, err
+	}
 
 	return s, nil
 }
