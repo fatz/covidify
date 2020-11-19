@@ -13,7 +13,7 @@ func (s *Server) Clean(olderThan time.Time) error {
 	}
 
 	s.config.Logger.Tracef("Found %d tables to cleanup", len(tables))
-
+	s.statsDIncrementByValue("covidify.clean.tables", len(tables))
 	errors := make([]string, 0)
 	for _, t := range tables {
 		if err := s.CleanTable(t, olderThan); err != nil {
@@ -30,5 +30,11 @@ func (s *Server) Clean(olderThan time.Time) error {
 
 func (s *Server) CleanTable(tableNumber string, olderThan time.Time) error {
 	s.config.Logger.Tracef("Cleaning Up visits older then %s on table %s", olderThan.Format(time.RFC1123), tableNumber)
-	return s.db.DeleteVisitsByTableCheckinBetweeen(tableNumber, time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC), olderThan)
+	err := s.db.DeleteVisitsByTableCheckinBetweeen(tableNumber, time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC), olderThan)
+	if err != nil {
+		s.statsDIncrement("covidify.clean.error")
+		return err
+	}
+	s.statsDIncrement("covidify.clean.success")
+	return nil
 }
