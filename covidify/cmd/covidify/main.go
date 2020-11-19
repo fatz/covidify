@@ -14,6 +14,7 @@ import (
 	"os"
 	"strconv"
 	"fmt"
+	"time"
 	"github.com/fatz/covidify/covidify/server"
 	"github.com/namsral/flag"
 	log "github.com/sirupsen/logrus"
@@ -26,6 +27,9 @@ func main() {
 	config = covidify.NewConfig()
 
 	var loglevel string
+	var cleanDuration time.Duration
+	var cleanRun bool
+	defaultCleanDuration, _ := time.ParseDuration("240h")
 	fs := flag.NewFlagSetWithEnvPrefix(os.Args[0], "COVIDIFY", 0)
 
 	fs.StringVar(&config.CassandraConnection, "cassandra", "127.0.0.1", "comma seperated list of cassandra nodes")
@@ -41,6 +45,8 @@ func main() {
 	fs.IntVar(&config.PrometheusPort, "prometheusport", 8081, "Prometheus stand alone port")
 	fs.BoolVar(&config.PrometheusStandalone, "prometheusstandalone", true, "Run prometheus metrics on its own port")
 	fs.StringVar(&config.PrometheusMetricsPath, "prometheuspath", "/metrics", "Path to be used serving metrics")
+	fs.DurationVar(&cleanDuration, "cleanolderthan", defaultCleanDuration, "The interval to be used to cleanup data. Example Format: 1h10m10s")
+	fs.BoolVar(&cleanRun, "cleanrun", false, "Start cleanup, sigle threaded and exit once finished")
 
 
 	logger := log.New()
@@ -87,13 +93,25 @@ func main() {
 	}
 
 	logger.Tracef("Initializing Server with config: %#v", config)
-	logger.Infof("Initializing Server with config: %#v", config)
 
 	server, err := covidify.NewServerWithConfig(config)
 	if err != nil {
 		logger.Fatalf("Could not initialize Server %v", err)
 	}
 
-	logger.Info("Server started")
-	server.Run()
+	if cleanRun {
+		beforeDate := time.Now().Add(-cleanDuration)
+		logger.Infof("Starting Cleanrun for every table before: %s", beforeDate.Format(time.RFC1123))
+
+		err := server.Clean(beforeDate)
+		if err != nil {
+			logger.Error("Error during clean %s", err)
+			os.Exit(1)
+		}
+
+		os.Exit(0)
+	} else {
+		logger.Info("Server started")
+		server.Run()
+	}
 }
