@@ -16,16 +16,18 @@ import (
 
 type Visit struct {
 
-	Id string `json:"id,omitempty" cql:"id"`
+	Id string `json:"id,omitempty" gorm:"primary_key"`
 
 	TableNumber string `json:"table_number" cql:"table_number"`
 
 	// If not specified it will default to now()
-	CheckIn time.Time `json:"check-in,omitempty" cql:"checkin"`
+	CheckIn time.Time `json:"check-in,omitempty" gorm:"column:check_in"`
 
-	CheckOut time.Time `json:"check-out,omitempty" cql:"checkout"`
+	CheckOut *time.Time `json:"check-out,omitempty" gorm:"column:check_out"`
 
 	Visitors []Visitor `json:"visitors,omitempty" cql:"visitors"`
 
 	Risk VisitRisk `json:"risk,omitempty" cql:"risk"`
+
+	RiskId int64 `json:"risk_id,omitempty"`
 }

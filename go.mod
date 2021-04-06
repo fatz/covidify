@@ -3,30 +3,26 @@ module github.com/fatz/covidify
 go 1.14
 
 require (
-	github.com/Bose/go-gin-logrus v1.0.3
-	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
-	github.com/antihax/optional v1.0.0 // indirect
-	github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef // indirect
 	github.com/etsy/statsd v0.9.0
 	github.com/gin-gonic/gin v1.6.3
-	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/go-resty/resty/v2 v2.3.0
-	github.com/gocql/gocql v0.0.0-20200815110948-5378c8f664e9
+	github.com/go-sql-driver/mysql v1.6.0 // indirect
+	github.com/google/go-cmp v0.5.1 // indirect
 	github.com/google/uuid v1.1.2
-	github.com/myzhan/boomer v0.0.0-20200828033921-b29cf430b44f
+	github.com/lestrrat-go/tcputil v0.0.0-20180223003554-d3c7f98154fb // indirect
+	github.com/lestrrat-go/test-mysqld v0.0.0-20190527004737-6c91be710371
 	github.com/namsral/flag v1.7.4-pre
-	github.com/olekukonko/tablewriter v0.0.4 // indirect
 	github.com/prometheus/client_golang v1.7.1
-	github.com/relops/cqlr v0.0.0-20141111204017-0ac35893ea3f
-	github.com/rocksolidlabs/gin-logrus v0.0.0-20180520211829-e80b1f0c4a0c
-	github.com/shirou/gopsutil v2.20.8+incompatible // indirect
 	github.com/sirupsen/logrus v1.6.0
-	github.com/statsd/statsd v0.9.0
 	github.com/stretchr/testify v1.4.0
 	github.com/toorop/gin-logrus v0.0.0-20200831135515-d2ee50d38dae
-	github.com/zeromq/goczmq v4.1.0+incompatible // indirect
-	github.com/zeromq/gomq v0.0.0-20181008000130-95dc37dee5c4 // indirect
+	github.com/xo/dburl v0.6.0
 	github.com/zsais/go-gin-prometheus v0.1.0
-	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43 // indirect
+	golang.org/x/net v0.0.0-20201021035429-f5854403a974 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	google.golang.org/protobuf v1.25.0 // indirect
+	gopkg.in/guregu/null.v4 v4.0.0
+	gorm.io/driver/mysql v1.0.5
+	gorm.io/gorm v1.21.6
 	syreclabs.com/go/faker v1.2.2
 )

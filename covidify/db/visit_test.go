@@ -29,7 +29,7 @@ func TestCreateVisitIntegration(t *testing.T) {
 		t.Skip("skipping integration test")
 	}
 
-	d, err := envConnect()
+	d, err := NewDB(dsn)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, d)
@@ -46,19 +46,22 @@ func TestGetVisitIntegration(t *testing.T) {
 		t.Skip("skipping integration test")
 	}
 
-	d, err := envConnect()
+	d, err := NewDB(dsn)
 
-	assert.NoError(t, err)
-	assert.NotNil(t, d)
+	if assert.NoError(t, err) && assert.NotNil(t, d) {
 
-	v1 := testCreateVisit()
+		v1 := testCreateVisit()
 
-	_, err = d.CreateVisit(v1)
-	if assert.NoError(t, err) {
-		v2, err := d.GetVisit(v1.Id)
-		assert.NoError(t, err)
-		assert.Equal(t, v1.TableNumber, v2.TableNumber)
-		assert.Equal(t, v1.Visitors, v2.Visitors)
+		res1, err := d.CreateVisit(v1)
+		assert.NotNil(t, res1)
+
+		if assert.NoError(t, err) {
+			v2, err := d.GetVisit(res1.Id)
+			if assert.NoError(t, err) && assert.NotNil(t, v2) {
+				assert.Equal(t, v1.TableNumber, v2.TableNumber)
+				assert.Equal(t, v1.Visitors, v2.Visitors)
+			}
+		}
 	}
 
 }

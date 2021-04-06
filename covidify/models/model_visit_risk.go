@@ -12,6 +12,8 @@ package models
 
 type VisitRisk struct {
 
+	Id int64 `json:"id,omitempty" gorm:"primary_key"`
+
 	Risk string `json:"risk,omitempty" cql:"risk"`
 
 	Description string `json:"description,omitempty" cql:"description"`
