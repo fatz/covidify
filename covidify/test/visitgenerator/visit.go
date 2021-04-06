@@ -22,7 +22,8 @@ func NewFakeVisit(table string) *models.Visit {
 
 	minCheckout := v.CheckIn.Add(time.Duration(MinStayMinutes) * time.Minute)
 	maxCheckout := v.CheckIn.Add(time.Duration(MaxStayMinutes) * time.Minute)
-	v.CheckOut = faker.Time().Between(minCheckout, maxCheckout)
+	checkout := faker.Time().Between(minCheckout, maxCheckout)
+	v.CheckOut = &checkout
 
 	if randNum := rand.Intn(MaxTableVisitors); randNum > 1 {
 		numVisitors = randNum
