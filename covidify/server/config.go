@@ -2,21 +2,22 @@ package covidify
 
 import (
 	"fmt"
-	"strings"
+	"net/url"
 
 	log "github.com/sirupsen/logrus"
 )
 
 type Config struct {
-	CassandraConnection string
-	CassandraKeyspace   string
-	CassandraUsername   string
-	CassandraPassword   string
-	Port                *int
-	Bind                string
-	StatsDHost          string
-	StatsDPort          int
-	StatsDPrefix        string
+	MySQLHost     string
+	MySQLPort     int
+	MySQLUser     string
+	MySQLPassword string
+	MySQLDatabase string
+	Port          *int
+	Bind          string
+	StatsDHost    string
+	StatsDPort    int
+	StatsDPrefix  string
 
 	PrometheusPort        int
 	PrometheusStandalone  bool
@@ -29,8 +30,9 @@ func NewConfig() *Config {
 	c := new(Config)
 
 	//sample
-	c.CassandraConnection = "127.0.0.1"
-	c.CassandraKeyspace = "covidify"
+	c.MySQLHost = "127.0.0.1"
+	c.MySQLPort = 3306
+	c.MySQLDatabase = "covidify"
 	var p int
 	p = 3000
 	c.Port = &p
@@ -47,11 +49,21 @@ func NewConfig() *Config {
 	return c
 }
 
-func (c *Config) GetCassandraCluster() []string {
-	return strings.Split(c.CassandraConnection, ",")
-}
-
 func (c *Config) GetBind() string {
 
 	return fmt.Sprintf("%s:%d", c.Bind, c.Port)
+}
+
+func (c *Config) GenDBDSN() string {
+	u := url.URL{}
+	u.Scheme = ""
+	u.Host = fmt.Sprintf("tcp(%s:%d)", c.MySQLHost, c.MySQLPort)
+
+	if c.MySQLUser != "" {
+		u.User = url.UserPassword(c.MySQLUser, c.MySQLPassword)
+	}
+	u.Path = c.MySQLDatabase
+
+	//skip scheme
+	return u.String()[2:]
 }
