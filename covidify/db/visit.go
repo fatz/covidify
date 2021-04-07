@@ -20,6 +20,7 @@ func (d *DB) CreateVisit(v models.Visit) (*models.Visit, error) {
 	return &v, nil
 }
 
+// GetVisit returns a given `visit`
 func (d *DB) GetVisit(id string) (*models.Visit, error) {
 	var v models.Visit
 
@@ -36,6 +37,7 @@ func (d *DB) GetVisit(id string) (*models.Visit, error) {
 	return &v, nil
 }
 
+// GetTables returns all tables with visits
 func (d *DB) GetTables() ([]string, error) {
 	tables := make([]string, 0)
 
@@ -47,6 +49,7 @@ func (d *DB) GetTables() ([]string, error) {
 	return tables, nil
 }
 
+// GetVisitsByTable returns all visits for a given `tableNumber`
 func (d *DB) GetVisitsByTable(tableNumber string) ([]models.Visit, error) {
 	var visits []models.Visit
 
@@ -58,10 +61,11 @@ func (d *DB) GetVisitsByTable(tableNumber string) ([]models.Visit, error) {
 	return visits, nil
 }
 
+// GetVisitsByTableCheckinBetweeen gets all visists of a given `tableNumber` betweeen `after` and `before`
 func (d *DB) GetVisitsByTableCheckinBetweeen(tableNumber string, after, before time.Time) ([]models.Visit, error) {
 	var visits []models.Visit
 
-	res := d.DB.Where("table_number = ? AND checkin > ? AND checkin < ?", tableNumber, after, before).Find(&visits)
+	res := d.DB.Where("table_number = ? AND check_in > ? AND check_in < ?", tableNumber, after, before).Find(&visits)
 	if res.Error != nil {
 		return nil, res.Error
 	}
@@ -69,8 +73,19 @@ func (d *DB) GetVisitsByTableCheckinBetweeen(tableNumber string, after, before t
 	return visits, nil
 }
 
+// DeleteVisitsCheckinBetweeen cleans up all visists of a given `tableNumber` betweeen `after` and `before`
 func (d *DB) DeleteVisitsByTableCheckinBetweeen(tableNumber string, after, before time.Time) error {
-	res := d.DB.Where("table_number = ? AND checkin > ? AND checkin < ?").Delete(&models.Visit{})
+	res := d.DB.Where("table_number = ? AND check_in > ? AND check_in < ?", tableNumber, after, before).Delete(&models.Visit{})
+	if res.Error != nil {
+		return res.Error
+	}
+
+	return nil
+}
+
+// DeleteVisitsCheckinBetweeen cleans up all visists betweeen `after` and `before`
+func (d *DB) DeleteVisitsCheckinBetweeen(after, before time.Time) error {
+	res := d.DB.Where("check_in > ? AND check_in < ?", after, before).Delete(&models.Visit{})
 	if res.Error != nil {
 		return res.Error
 	}
