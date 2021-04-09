@@ -6,6 +6,7 @@ metadata:
   namespace: covidify
 type: Opaque
 stringData:
+  # generate passwords
   root: aMae3ohWah0eeSohtee2pahbe
   xtrabackup: iew3Aeci7aiw5BohtuoPhaed5
   monitor: Reil8cuibiphai0ootaS8Ahzi
