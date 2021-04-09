@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -34,9 +35,10 @@ type RandomVisitGen struct {
 	requestCounter *prometheus.CounterVec
 	requestTimer   *prometheus.HistogramVec
 
-	Headers map[string]string
-	BaseURL string
-	Delay   int
+	Headers   map[string]string
+	BaseURL   string
+	Delay     int
+	SSLVerify bool
 
 	Name string
 }
@@ -50,6 +52,7 @@ func NewRandomVisitGen(name, baseURL string, requestCounter *prometheus.CounterV
 	r.Name = name
 	r.Delay = 0
 	r.BaseURL = baseURL
+	r.SSLVerify = true
 
 	return r
 }
@@ -72,6 +75,8 @@ func (r *RandomVisitGen) visit() {
 	client := resty.New()
 	table := getRandTable(tables)
 	v := NewFakeVisit(table)
+	client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: !r.SSLVerify})
+	// client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
@@ -107,6 +112,7 @@ func (r *RandomVisitGen) Run() {
 }
 
 func main() {
+	sslVerify := true
 	instances := 4
 	delay := 100
 	url := "http://localhost:8080"
@@ -117,6 +123,7 @@ func main() {
 	fs.StringVar(&hostHeader, "hostheader", "", "Change the Host header")
 	fs.IntVar(&delay, "delay", 100, "Delay in ms")
 	fs.IntVar(&instances, "instances", 4, "Load generator instances to start.")
+	fs.BoolVar(&sslVerify, "sslverify", true, "Verify SSL Certificates.")
 
 	fs.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
@@ -152,6 +159,7 @@ func main() {
 		gens[i] = NewRandomVisitGen(name, url, requestCounter, requestTimer)
 		gens[i].Delay = delay
 		gens[i].Headers = headers
+		gens[i].SSLVerify = sslVerify
 	}
 
 	go func() {

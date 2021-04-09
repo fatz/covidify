@@ -123,7 +123,7 @@ dcos cassandra --name "testing/covidify/cassandra" endpoints native-client | jq 
 ```
 
 
-curl -H "Host: covidify.dcos.d2iq.com" -X POST "http://<yourclusteraddress>/visit" -H  "accept: */*" -H  "Content-Type: application/json" -d "{\"id\":\"d290f1ee-6c54-4b01-90e6-d701748f0851\",\"table_number\":\"outside-1\",\"visitors\":[{\"name\":\"John Doe\",\"email\":\"john.doe@googlemail.com\",\"phone\":\"+49-30-123456789\",\"country\":\"DEU\",\"city\":\"Berlin\",\"zip_code\":\"11011\",\"street\":\"Platz der Republik 1\"}],\"risk\":{\"risk\":\"low\",\"description\":\"string\"}}"
+curl -H "Host: covidify.testing.d2iq.com" -X POST "http://<yourclusteraddress>/visit" -H  "accept: */*" -H  "Content-Type: application/json" -d "{\"id\":\"d290f1ee-6c54-4b01-90e6-d701748f0851\",\"table_number\":\"outside-1\",\"visitors\":[{\"name\":\"John Doe\",\"email\":\"john.doe@googlemail.com\",\"phone\":\"+49-30-123456789\",\"country\":\"DEU\",\"city\":\"Berlin\",\"zip_code\":\"11011\",\"street\":\"Platz der Republik 1\"}]}"
 
 
 ### kubernetes
@@ -166,4 +166,17 @@ Start app, service and ingress
 
 ```
 kubectl apply -n covidify -f deployments/dkp/api.yml
+```
+
+
+
+# deploy mysql user password
+```
+COVIDIFY_PASSWORD=$(pwgen 25 -1)
+kubectl -n covidify create secret generic covidify-db-user --from-literal=COVIDIFY_USERNAME=covidify --from-literal=COVIDIFY_PASSWORD="${COVIDIFY_PASSWORD}"
+
+CREATE USER 'covidify'@'%' IDENTIFIED BY '${COVIDIFY_PASSWORD}';
+
+GRANT ALL PRIVILEGES ON covidify.* TO 'covidify'@'%';
+
 ```

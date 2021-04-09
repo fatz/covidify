@@ -17,19 +17,19 @@ spec:
     spec:
       containers:
       - name: api
-        image: fatz/covidify:latest
+        image: fatz/covidify:feature-mysql
         ports:
         - containerPort: 8080
         envFrom:
         - secretRef:
-            name: cassandra-credentials
+            name: covidify-db-user
         livenessProbe:
           httpGet:
             path: /health
             port: 8080
         env:
-        - name: COVIDIFY_CASSANDRA
-          value: cluster1-dc1-all-pods-service.cass-operator.svc.cluster.local
+        - name: COVIDIFY_MYSQL
+          value: covidify-haproxy
 
 ---
 apiVersion: v1
@@ -54,7 +54,7 @@ metadata:
     kubernetes.io/ingress.class: traefik
 spec:
   rules:
-  - host: covidify.dcos.d2iq.com
+  - host: covidify.testing.d2iq.com
     http:
       paths:
       - path: /
