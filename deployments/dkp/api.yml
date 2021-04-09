@@ -4,22 +4,24 @@ kind: Deployment
 metadata:
   name: covidify-api
   labels:
-    app: covidify
+    app: covidify-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: covidify
+      app: covidify-api
   template:
     metadata:
       labels:
-        app: covidify
+        app: covidify-api
     spec:
       containers:
       - name: api
         image: fatz/covidify:feature-mysql
         ports:
-        - containerPort: 8080
+          - containerPort: 8080
+          - containerPort: 8081
+            name: metrics
         envFrom:
         - secretRef:
             name: covidify-db-user
@@ -38,12 +40,15 @@ metadata:
   name: covidify-api
 spec:
   ports:
-  - name: http
-    protocol: TCP
-    targetPort: 8080
-    port: 80
+    - name: http
+      protocol: TCP
+      targetPort: 8080
+      port: 80
+    - name: metrics
+      port: 8081
+      targetPort: 8081
   selector:
-    app: covidify
+    app: covidify-api
 
 ---
 apiVersion: extensions/v1beta1
@@ -54,10 +59,73 @@ metadata:
     kubernetes.io/ingress.class: traefik
 spec:
   rules:
-  - host: covidify.testing.d2iq.com
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: covidify-api
-          servicePort: http
+    - host: covidify.testing.d2iq.com
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: covidify-api
+              servicePort: http
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: covidify-monitor
+  namespace: covidify
+  labels:
+    release: prometheus-kubeaddons
+spec:
+  selector:
+    matchLabels:
+      app: covidify-api
+  podMetricsEndpoints:
+    - port: metrics
+      path: /metrics
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: covidify-generator
+  labels:
+    app: covidify-generator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: covidify-generator
+  template:
+    metadata:
+      labels:
+        app: covidify-generator
+    spec:
+      containers:
+      - name: api
+        image: fatz/covidify:generator
+        ports:
+        - containerPort: 2112
+          name: metrics
+        env:
+          - name: GENERATOR_INSTANCES
+            value: "10"
+          - name: GENERATOR_DELAY
+            value: "0"
+          - name: GENERATOR_URL
+            value: http://covidify-api.covidify.svc.cluster.local
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: covidify-generator-monitor
+  namespace: covidify
+  labels:
+    release: prometheus-kubeaddons
+spec:
+  selector:
+    matchLabels:
+      app: covidify-generator
+  podMetricsEndpoints:
+    - port: metrics
+      path: /metrics
