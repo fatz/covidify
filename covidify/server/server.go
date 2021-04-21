@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"time"
 
+	statsd "github.com/etsy/statsd/examples/go"
 	cdb "github.com/fatz/covidify/covidify/db"
 	"github.com/gin-gonic/gin"
-	"github.com/zsais/go-gin-prometheus"
-	"github.com/etsy/statsd/examples/go"
+	ginprometheus "github.com/zsais/go-gin-prometheus"
 )
 
 type Server struct {
@@ -28,12 +28,7 @@ func NewServerWithConfig(c *Config) (s *Server, err error) {
 
 	s.config = c
 
-	switch {
-	case c.CassandraUsername != "" && c.CassandraPassword != "":
-		s.db, err = cdb.NewDBWithPW(c.GetCassandraCluster(), c.CassandraKeyspace, c.CassandraUsername, c.CassandraPassword)
-	default:
-		s.db, err = cdb.NewDB(c.GetCassandraCluster(), c.CassandraKeyspace)
-	}
+	s.db, err = cdb.NewDB(s.config.GenDBDSN())
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +37,7 @@ func NewServerWithConfig(c *Config) (s *Server, err error) {
 	p := ginprometheus.NewPrometheus("gin")
 	p.MetricsPath = s.config.PrometheusMetricsPath
 
-	s.g = s.NewRouterWithMiddleware([]gin.HandlerFunc{p.HandlerFunc()},nil,nil)
+	s.g = s.NewRouterWithMiddleware([]gin.HandlerFunc{p.HandlerFunc()}, nil, nil)
 
 	if s.config.PrometheusStandalone {
 		// Start New Engine for standalone
@@ -52,7 +47,6 @@ func NewServerWithConfig(c *Config) (s *Server, err error) {
 		// use default router
 		p.SetMetricsPath(s.g)
 	}
-
 
 	return s, nil
 }

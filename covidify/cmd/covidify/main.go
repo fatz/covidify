@@ -11,11 +11,12 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strconv"
-	"fmt"
 	"time"
-	"github.com/fatz/covidify/covidify/server"
+
+	covidify "github.com/fatz/covidify/covidify/server"
 	"github.com/namsral/flag"
 	log "github.com/sirupsen/logrus"
 )
@@ -32,12 +33,13 @@ func main() {
 	defaultCleanDuration, _ := time.ParseDuration("240h")
 	fs := flag.NewFlagSetWithEnvPrefix(os.Args[0], "COVIDIFY", 0)
 
-	fs.StringVar(&config.CassandraConnection, "cassandra", "127.0.0.1", "comma seperated list of cassandra nodes")
-	fs.StringVar(&config.CassandraKeyspace, "keyspace", "covidify", "Cassandra keyspace to be used")
+	fs.StringVar(&config.MySQLHost, "mysql", "127.0.0.1", "ip or host to connect to")
+	fs.StringVar(&config.MySQLDatabase, "database", "covidify", "MySQL dabase to be used")
 	fs.StringVar(&config.Bind, "bind", "0.0.0.0", "address to bind to")
 	fs.IntVar(config.Port, "port", 8080, "port to bind to")
-	fs.StringVar(&config.CassandraUsername, "username", "", "Cassandra Authentication Username")
-	fs.StringVar(&config.CassandraPassword, "password", "", "Cassandra Authentication Password")
+	fs.StringVar(&config.MySQLUser, "username", "root", "MySQL Username")
+	fs.StringVar(&config.MySQLPassword, "password", "", "MySQL Password")
+	fs.IntVar(&config.MySQLPort, "mysqlport", 3306, "MySQL Database Port")
 	fs.StringVar(&config.StatsDHost, "statsdhost", "127.0.0.1", "Host or IP to send statsD metrics")
 	fs.IntVar(&config.StatsDPort, "statsdport", 8125, "statsd Port")
 	fs.StringVar(&config.StatsDPrefix, "statsdprefix", "", "statsd metrics prefix")
@@ -47,7 +49,6 @@ func main() {
 	fs.StringVar(&config.PrometheusMetricsPath, "prometheuspath", "/metrics", "Path to be used serving metrics")
 	fs.DurationVar(&cleanDuration, "cleanolderthan", defaultCleanDuration, "The interval to be used to cleanup data. Example Format: 1h10m10s")
 	fs.BoolVar(&cleanRun, "cleanrun", false, "Start cleanup, sigle threaded and exit once finished")
-
 
 	logger := log.New()
 

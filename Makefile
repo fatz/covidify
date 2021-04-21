@@ -3,7 +3,7 @@ export GO111MODULE := on
 define run_generator
 docker run -u $(shell id -u):$(shell id -g) \
 	-v $(CURDIR):/local -w /local \
-	openapitools/openapi-generator-cli:v4.3.1 \
+	openapitools/openapi-generator-cli:v5.1.0 \
 	generate -i openapi/covidify.yaml -g go-gin-server -o covidify \
 	--global-property models \
 	--additional-properties=packageName=models,withGoCodegenComment=true,apiPath=models \

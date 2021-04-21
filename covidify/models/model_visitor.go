@@ -12,6 +12,10 @@ package models
 
 type Visitor struct {
 
+	Id int64 `json:"id,omitempty" gorm:"primary_key"`
+
+	VisitId string `json:"visit_id,omitempty"`
+
 	Name string `json:"name" cql:"name"`
 
 	Email string `json:"email,omitempty" cql:"email"`
