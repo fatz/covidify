@@ -168,15 +168,27 @@ Start app, service and ingress
 kubectl apply -n covidify -f deployments/dkp/api.yml
 ```
 
+# setup xtradb cluster
+```
+kubectl -n covidify create secret generic covidify-db --from-literal=root=$(pwgen 25 -1)  --from-literal=xtrabackup=$(pwgen 25 -1)  --from-literal=monitor=$(pwgen 25 -1)  --from-literal=clustercheck=$(pwgen 25 -1)  --from-literal=proxyadmin=$(pwgen 25 -1)  --from-literal=pmmserver=$(pwgen 25 -1)  --from-literal=operator=$(pwgen 25 -1)
 
+kubectl apply -n covidify apply -f deployments/dkp/mysql.yml --wait true
+
+kubectl -n covidify run -ti --rm percona-client --image=percona:5.7 --restart=Never --env="POD_NAMESPACE=covidify" -- mysql -h covidify-haproxy -u root --password=$(kubectl -n covidify get secret covidify-db -o jsonpath="{.data.root}" | base64 -d) -e "CREATE DATABASE covidify;"
+
+kubectl -n covidify create secret generic covidify-db-user --from-literal=COVIDIFY_USERNAME=covidify --from-literal=COVIDIFY_PASSWORD="$(pwgen 25 -1)"
+
+kubectl -n covidify run -ti --rm percona-client --image=percona:5.7 --restart=Never --env="POD_NAMESPACE=covidify" -- mysql -h covidify-haproxy -u root --password=$(kubectl -n covidify get secret covidify-db -o jsonpath="{.data.root}" | base64 -d) -e "CREATE USER 'covidify'@'%' IDENTIFIED BY '$(kubectl -n covidify get secret covidify-db-user -o jsonpath="{.data.COVIDIFY_PASSWORD}" | base64 -d)';GRANT ALL PRIVILEGES ON covidify.* TO 'covidify'@'%';"
+
+
+cat covidify.sql | kubectl -n covidify run -ti --rm percona-client --image=percona:5.7 --restart=Never --env="POD_NAMESPACE=covidify" -- mysql -h covidify-haproxy -u root --password=$(kubectl -n covidify get secret covidify-db -o jsonpath="{.data.root}" | base64 -d) covidify
+```
 
 # deploy mysql user password
 ```
 COVIDIFY_PASSWORD=$(pwgen 25 -1)
-kubectl -n covidify create secret generic covidify-db-user --from-literal=COVIDIFY_USERNAME=covidify --from-literal=COVIDIFY_PASSWORD="${COVIDIFY_PASSWORD}"
+kubectl -n covidify create secret generic covidify-db-user --from-literal=COVIDIFY_USERNAME=covidify --from-literal=COVIDIFY_PASSWORD="$(pwgen 25 -1)"
 
-CREATE USER 'covidify'@'%' IDENTIFIED BY '${COVIDIFY_PASSWORD}';
-
-GRANT ALL PRIVILEGES ON covidify.* TO 'covidify'@'%';
+CREATE USER 'covidify'@'%' IDENTIFIED BY '${COVIDIFY_PASSWORD}';GRANT ALL PRIVILEGES ON covidify.* TO 'covidify'@'%';
 
 ```

@@ -3,6 +3,7 @@ package covidify
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	statsd "github.com/etsy/statsd/examples/go"
@@ -33,7 +34,11 @@ func NewServerWithConfig(c *Config) (s *Server, err error) {
 		return nil, err
 	}
 
-	s.statsd = statsd.New(c.StatsDHost, c.StatsDPort)
+	if strings.TrimSpace(c.StatsDHost) == "" {
+		s.statsd = nil
+	} else {
+		s.statsd = statsd.New(c.StatsDHost, c.StatsDPort)
+	}
 	p := ginprometheus.NewPrometheus("gin")
 	p.MetricsPath = s.config.PrometheusMetricsPath
 

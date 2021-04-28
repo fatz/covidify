@@ -1,3 +1,30 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: covidify-cleanup
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: cleanup
+            image: fatz/covidify:feature-mysql-6
+            envFrom:
+            - secretRef:
+                name: covidify-db-user
+            env:
+            - name: COVIDIFY_CLEANRUN
+              value: "true"
+            - name: COVIDIFY_MYSQL
+              value: covidify-haproxy
+            - name: COVIDIFY_LOG
+              value: info
+            - name: COVIDIFY_STATSDHOST
+          restartPolicy: Never
+
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -6,7 +33,7 @@ metadata:
   labels:
     app: covidify-api
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: covidify-api
@@ -17,7 +44,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: fatz/covidify:feature-mysql
+        image: fatz/covidify:feature-mysql-6
         ports:
           - containerPort: 8080
           - containerPort: 8081
@@ -32,6 +59,9 @@ spec:
         env:
         - name: COVIDIFY_MYSQL
           value: covidify-haproxy
+        - name: COVIDIFY_LOG
+          value: warning
+        - name: COVIDIFY_STATSDHOST
 
 ---
 apiVersion: v1
@@ -91,7 +121,7 @@ metadata:
   labels:
     app: covidify-generator
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: covidify-generator
@@ -102,17 +132,21 @@ spec:
     spec:
       containers:
       - name: api
-        image: fatz/covidify:generator
+        image: fatz/covidify:feature-mysql-generator-6
         ports:
         - containerPort: 2112
           name: metrics
         env:
           - name: GENERATOR_INSTANCES
-            value: "10"
+            value: "15"
           - name: GENERATOR_DELAY
-            value: "0"
+            value: "50"
           - name: GENERATOR_URL
-            value: http://covidify-api.covidify.svc.cluster.local
+            value: https://konvoy-soak18.ksphere-soak.d2iq.cloud
+          - name: GENERATOR_HOSTHEADER
+            value: covidify.testing.d2iq.com
+          - name: GENERATOR_SSLVERIFY
+            value: "false"
 
 ---
 apiVersion: monitoring.coreos.com/v1

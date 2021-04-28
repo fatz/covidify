@@ -1,0 +1,51 @@
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: covidify-generator-int
+  labels:
+    app: covidify-generator-int
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: covidify-generator-int
+  template:
+    metadata:
+      labels:
+        app: covidify-generator-int
+    spec:
+      containers:
+      - name: api
+        image: fatz/covidify:feature-mysql-generator
+        ports:
+        - containerPort: 2112
+          name: metrics
+        env:
+          - name: GENERATOR_INSTANCES
+            value: "10"
+          - name: GENERATOR_DELAY
+            value: "50"
+          - name: GENERATOR_URL
+            value: http://covidify-api
+          - name: GENERATOR_HOSTHEADER
+            value: covidify.testing.d2iq.com
+          - name: GENERATOR_SSLVERIFY
+            value: "false"
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: covidify-generator-int-monitor
+  namespace: covidify
+  labels:
+    release: prometheus-kubeaddons
+spec:
+  selector:
+    matchLabels:
+      app: covidify-generator-int
+  podMetricsEndpoints:
+    - port: metrics
+      path: /metrics

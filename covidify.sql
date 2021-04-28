@@ -26,6 +26,9 @@ CREATE TABLE `visits` (
   `check_out` datetime NULL,
   `risk_id` bigint(20) NULL,
   PRIMARY KEY (`id`),
-  KEY `risk_id` (`risk_id`)
+  KEY `risk_id` (`risk_id`),
+  KEY `idx_visits_table_number` (`table_number`),
+  KEY `idx_visits_check_in` (`check_in`),
+  KEY `idx_visits_check_out` (`check_out`)
   -- CONSTRAINT `visit_fk_1` FOREIGN KEY (`risk_id`) REFERENCES `risks` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
