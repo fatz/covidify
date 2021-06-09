@@ -136,9 +136,6 @@ Helm
 helm install --namespace pxc-operator pxc . --set watchAllNamespaces=true
 ```
 
-### covidify app
-
-```
 
 # setup xtradb cluster
 ```
