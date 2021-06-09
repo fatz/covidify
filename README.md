@@ -128,51 +128,23 @@ curl -H "Host: covidify.testing.d2iq.com" -X POST "http://<yourclusteraddress>/v
 
 ### kubernetes
 
-Start cassandra
+### percona operator
+Percona operator needs to be deployed in cluster wide mode. Use this Helm chart fork https://github.com/fatz/percona-helm-charts/tree/feature/cluster-wide as long as https://github.com/percona/percona-helm-charts/pull/70 is not merged
 
-#### Using cass operator on konvoy
-
+Helm
 ```
-K8S_VER=1.18 kubectl apply -f https://raw.githubusercontent.com/datastax/cass-operator/v1.4.1/docs/user/cass-operator-manifests-$K8S_VER.yaml
-kubectl -n cass-operator apply -f deployments/dkp/cassandra.yml
-```
-
-
-Watch for ready state
-
-
-Apply csql
-```
-CASS_PASS=$(kubectl -n cass-operator get secret cluster1-superuser -o json | jq -r '.data.password' | base64 --decode)
-CASS_USER=$(kubectl -n cass-operator get secret cluster1-superuser -o json | jq -r '.data.username' | base64 --decode)
-kubectl -n cass-operator exec -ti cluster1-dc1-default-sts-0 -c cassandra -- sh -c "cqlsh -u '$CASS_USER' -p '$CASS_PASS'"
+helm install --namespace pxc-operator pxc . --set watchAllNamespaces=true
 ```
 
-paste [model.csql](./model.sql)
+### covidify app
 
-
-Create namespace:
-```
-kubectl create namespace covidify
-```
-
-Create a secret with Cassandra credentials:
-
-```
-kubectl create secret generic cassandra-credentials -n covidify --from-literal=COVIDIFY_USERNAME=$(kubectl -n cass-operator get secret cluster1-superuser -o json | jq -r '.data.username' | base64 --decode) --from-literal=COVIDIFY_PASSWORD=$(kubectl -n cass-operator get secret cluster1-superuser -o json | jq -r '.data.password' | base64 --decode)
-```
-
-Start app, service and ingress
-
-```
-kubectl apply -n covidify -f deployments/dkp/api.yml
 ```
 
 # setup xtradb cluster
 ```
-kubectl -n covidify create secret generic covidify-db --from-literal=root=$(pwgen 25 -1)  --from-literal=xtrabackup=$(pwgen 25 -1)  --from-literal=monitor=$(pwgen 25 -1)  --from-literal=clustercheck=$(pwgen 25 -1)  --from-literal=proxyadmin=$(pwgen 25 -1)  --from-literal=pmmserver=$(pwgen 25 -1)  --from-literal=operator=$(pwgen 25 -1)
+kubectl -n covidify create secret generic covidify-db --from-literal=root=$(pwgen 25 -1)  --from-literal=xtrabackup=$(pwgen 25 -1)  --from-literal=monitor=$(pwgen 25 -1)  --from-literal=clustercheck=$(pwgen 25 -1)  --from-literal=proxyadmin=$(pwgen 25 -1)  --from-literal=pmmserver=$(k -n kubeaddons get pod -l component=pmm -o json | jq -r ".items[0].spec.containers[0].env[] | select(.name==\"ADMIN_PASSWORD\").value")  --from-literal=operator=$(pwgen 25 -1)
 
-kubectl apply -n covidify apply -f deployments/dkp/mysql.yml --wait true
+kubectl -n covidify apply -f deployments/dkp/mysql.yml
 
 kubectl -n covidify run -ti --rm percona-client --image=percona:5.7 --restart=Never --env="POD_NAMESPACE=covidify" -- mysql -h covidify-haproxy -u root --password=$(kubectl -n covidify get secret covidify-db -o jsonpath="{.data.root}" | base64 -d) -e "CREATE DATABASE covidify;"
 

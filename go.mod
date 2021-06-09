@@ -6,6 +6,7 @@ require (
 	4d63.com/gochecknoglobals v0.0.0-20201008074935-acfc0b28355a // indirect
 	4d63.com/gochecknoinits v0.0.0-20200108094044-eb73b47b9fc4 // indirect
 	github.com/alecthomas/gocyclo v0.0.0-20150208221726-aa8f8b160214 // indirect
+	github.com/alexkohler/nakedret v1.0.0 // indirect
 	github.com/etsy/statsd v0.9.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-resty/resty/v2 v2.3.0
@@ -13,6 +14,7 @@ require (
 	github.com/google/go-cmp v0.5.1 // indirect
 	github.com/google/uuid v1.1.2
 	github.com/gordonklaus/ineffassign v0.0.0-20210225214923-2e10b2664254 // indirect
+	github.com/jgautheron/goconst v1.4.0 // indirect
 	github.com/kisielk/errcheck v1.6.0 // indirect
 	github.com/kisielk/gotool v1.0.0 // indirect
 	github.com/lestrrat-go/tcputil v0.0.0-20180223003554-d3c7f98154fb // indirect
@@ -24,6 +26,7 @@ require (
 	github.com/opennota/check v0.0.0-20180911053232-0c771f5545ff // indirect
 	github.com/prometheus/client_golang v1.7.1
 	github.com/prometheus/common v0.10.0
+	github.com/securego/gosec v0.0.0-20200401082031-e946c8c39989 // indirect
 	github.com/sirupsen/logrus v1.6.0
 	github.com/stretchr/testify v1.4.0
 	github.com/stripe/safesql v0.2.0 // indirect
